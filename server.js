@@ -1,7 +1,9 @@
 const http = require('http');
 const path = require('path');
+const crypto = require('crypto');
 const express = require('express');
 const bodyParser = require('body-parser');
+const multer = require('multer');
 
 const sequelize = require('./utils/database');
 
@@ -9,10 +11,32 @@ const usersRoute = require('./routes/users');
 
 const app = express();
 
+const fileStorage = multer.diskStorage({
+  destination: (req, file, callback) => {
+    callback(null, 'client/public/avatars');
+  },
+  filename: (req, file, callback) => {
+    crypto.randomBytes(20, (err, buffer) => {
+      const name = Date.now() + buffer.toString('hex') + '.' + file.originalname.split('.').reverse()[0];
+      callback(null, name);
+    });
+  }
+});
+
+const fileFilter = (req, file, callback) => {
+  const fileTypes = ['image/png', 'image/jpg', 'image/jpeg'];
+  if (fileTypes.includes(file.mimetype)) {
+    callback(null, true);
+  } else {
+    callback(null, false);
+  }
+};
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).single('avatar'));
 
-// app.use('/files', express.static(path.join(__dirname, 'files')));
+app.use('/client/public/avatars', express.static(path.join(__dirname, 'client/public/avatars')));
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');

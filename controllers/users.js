@@ -36,11 +36,18 @@ exports.signup = async (req, res) => {
       return res.status(400).json(errors);
     }
 
+    const user2 = await User.findOne({ where: { nickname: req.body.nickname } });
+
+    if (!isEmpty(user2)) {
+      errors.nickname = "This nickname already exists";
+      return res.status(400).json(errors);
+    }
+
     const newUser = {
-      name: req.body.name,
+      nickname: req.body.nickname,
       email: req.body.email,
       password: req.body.password,
-      avatar: '/avatars/default.png'
+      avatar: 'avatars/default.png'
     };
 
     const salt = await bcrypt.genSalt(10);
@@ -101,19 +108,32 @@ exports.signin = async (req, res) => {
 
 exports.updateUserData = async (req, res) => {
   const { errors, isValid } = validateUpdateInput(req.body);
+  // console.log(req.file.path)
 
   if (!isValid) {
     return res.status(400).json(errors);
   }
   try {
-    await User.update({
-      name: req.body.name,
-      email: req.body.email,
-    }, {
-      where: {
-        id: req.user.id
-      }
-    });
+    if (isEmpty(req.file)) {
+      await User.update({
+        nickname: req.body.nickname,
+        email: req.body.email
+      }, {
+        where: {
+          id: req.user.id
+        }
+      });
+    } else {
+      await User.update({
+        nickname: req.body.nickname,
+        email: req.body.email,
+        avatar: req.file.path.slice(14)
+      }, {
+        where: {
+          id: req.user.id
+        }
+      });
+    }
 
     res.json({ msg: "success" });
   } catch (error) {

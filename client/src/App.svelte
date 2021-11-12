@@ -1,30 +1,49 @@
 <script>
-	export let name;
+	import { Router, Route } from "svelte-navigator";
+	import { onMount } from "svelte";
+	import Notifications from "svelte-notifications";
+
+	import { loadUser, logout } from "./apis/auth";
+
+	import PrivateRoute from "./components/privateRoute/PrivateRoute.svelte";
+
+	import Register from "./components/auth/Register.svelte";
+	import Login from "./components/auth/Login.svelte";
+	import MyAccount from "./components/myAccount/MyAccount.svelte";
+	import Home from "./components/layout/Home.svelte";
+
+	onMount(() => {
+		if (localStorage.token) {
+			loadUser();
+		}
+
+		window.addEventListener("storage", () => {
+			if (!localStorage.token) logout();
+		});
+	});
+	export let url = "";
 </script>
 
 <main>
-	<h1>Hello {name}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
+	<Notifications>
+		<Router {url}>
+			<PrivateRoute path="/">
+				<Home />
+			</PrivateRoute>
+			<Route path="/auth/register" component={Register} />
+			<Route path="/auth/login" component={Login} />
+			<PrivateRoute path="/myAccount">
+				<MyAccount />
+			</PrivateRoute>
+		</Router>
+	</Notifications>
 </main>
 
 <style>
 	main {
 		text-align: center;
-		padding: 1em;
-		max-width: 240px;
+		padding: p;
 		margin: 0 auto;
-	}
-
-	h1 {
-		color: #ff3e00;
-		text-transform: uppercase;
-		font-size: 4em;
-		font-weight: 100;
-	}
-
-	@media (min-width: 640px) {
-		main {
-			max-width: none;
-		}
+		height: 100vh;
 	}
 </style>
