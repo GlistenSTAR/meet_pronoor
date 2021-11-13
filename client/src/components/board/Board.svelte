@@ -28,7 +28,7 @@
   let friend;
   let socket_url;
   let message = "";
-  let msgs;
+  let msgs = [];
 
   messages.subscribe((v) => {
     msgs = v;
@@ -41,6 +41,7 @@
   const socket = openSocket(socket_url);
 
   socket.on("createMessage", (data) => {
+    console.log("socket");
     data.receiver_time = new Date().toLocaleTimeString();
     const newMsg = new Array();
     newMsg.sender = data.sender;
@@ -49,10 +50,11 @@
     newMsg.sender_time = data.sender_time;
     newMsg.receiver_time = data.receiver_time;
     if (isEmpty(msgs)) {
-      msgs = newMsg;
+      msgs[0] = newMsg;
     } else {
       msgs.push(newMsg);
     }
+    console.log(newMsg);
     messages.set(msgs);
     socket.emit("updateTime", data);
   });
@@ -96,7 +98,7 @@
         removeAfter: 3000,
       });
     } else {
-      const msgDada = {
+      const msgData = {
         sender: userData.nickname,
         receiver: friend.nickname,
         message: message,
@@ -104,10 +106,11 @@
         receiver_time: "",
       };
 
-      const res = await saveMessage(msgDada, socket);
+      const res = await saveMessage(msgData);
 
       if (res === "success") {
         message = "";
+        socket.emit("createMessage", msgData);
       }
     }
   };

@@ -56,9 +56,9 @@ app.use('/api/messages', messageRoute);
 
 io.on('connection', socket => {
   console.log('Client Connected!');
-
   socket.on('createMessage', data => {
-    socket.emit('createMessage', data);
+    console.log('socket');
+    io.emit('createMessage', data);
   });
 
   socket.on('updateTime', data => {
@@ -71,8 +71,9 @@ io.on('connection', socket => {
         sender_time: data.sender_time,
       }
     })
-  })
-})
+  });
+});
+
 
 const port = parseInt(process.env.PORT, 10) || 7000;
 

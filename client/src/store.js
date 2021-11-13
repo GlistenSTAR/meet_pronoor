@@ -1,7 +1,7 @@
 import { readable, writable } from 'svelte/store';
 
-export const apiURL = readable("http://localhost:7000/api");
-export const socketURL = readable("http://localhost:7000");
+export const apiURL = readable("http://192.168.108.17:7000/api");
+export const socketURL = readable("http://192.168.108.17:7000");
 
 export const user = writable([]);
 export const selectedFriend = writable([]);

@@ -3,12 +3,11 @@ import { messages } from '../store';
 import isEmpty from '../../../validation/is-empty';
 
 // Save message
-export const saveMessage = async (msgData, socket) => {
+export const saveMessage = async (msgData) => {
   const res = await api.post('/messages/saveMessage', msgData);
 
   if (res.msg === 'success') {
     console.log(res.msg);
-    socket.emit('createMessage', msgData);
     return res.msg;
   } else {
     console.log(res.data);
