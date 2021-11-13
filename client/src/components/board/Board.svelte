@@ -64,10 +64,8 @@
   });
 
   afterUpdate(() => {
-    if (!isEmpty(document.getElementsByClassName("msg-appear-field")[0])) {
-      document.getElementsByClassName("msg-appear-field")[0].scrollTop =
-        document.getElementsByClassName("msg-appear-field")[0].scrollHeight;
-    }
+    const element = document.querySelector(".msg-appear-field");
+    if (element !== null) element.scrollTop = element.scrollHeight;
   });
 
   user.subscribe((v) => {
@@ -114,22 +112,28 @@
       }
     }
   };
+
+  let innerHeight;
 </script>
 
+<svelte:window bind:innerHeight />
 <div class="d-flex total-height">
   <!-- Users list field -->
-  <div class="users-field">
-    <div class="search-field">
-      <img src={`../../${userData.avatar}`} alt="avatar" class="main-avatar" />
-      <p class="mt-2 font-weight-bolder avatar-text">{userData.nickname}</p>
-      <input
-        type="text"
-        class="form-control form-control-sm mt-3 search-input"
-        placeholder="Search users"
-        bind:value={search_key}
-      />
-    </div>
-    <div class="users-list mt-3 text-left">
+  <div class="users-field" style="height: {innerHeight}px;">
+    <!-- <div class="search-field"> -->
+    <img src={`../../${userData.avatar}`} alt="avatar" class="main-avatar" />
+    <p class="mt-2 font-weight-bolder avatar-text">{userData.nickname}</p>
+    <input
+      type="text"
+      class="form-control form-control-sm mt-3 search-input"
+      placeholder="Search users"
+      bind:value={search_key}
+    />
+    <!-- </div> -->
+    <div
+      class="users-list mt-3 text-left"
+      style="height: {innerHeight - 280}px;"
+    >
       {#if !isEmpty(totalFriends)}
         {#each totalFriends as friend}
           <FriendItem {friend} />
@@ -139,7 +143,7 @@
   </div>
 
   <!-- Chat field -->
-  <div class="chat-field">
+  <div class="chat-field" style="height: {innerHeight}px;">
     <!-- Tools field -->
     <div class="d-flex justify-content-between px-3">
       {#if !isEmpty(friend)}
@@ -161,7 +165,8 @@
         <Icon icon={faVideo} class="icon" />
       </div>
     </div>
-    <div class="message-field mt-2">
+    <!-- Message field -->
+    <div class="message-field mt-2" style="height: {innerHeight - 140}px;">
       <form
         class="d-flex justify-content-center"
         on:submit|preventDefault={sendMessage}
@@ -188,7 +193,6 @@
   .users-field {
     position: relative;
     width: 350px;
-    height: 100%;
     background-color: #615550;
     box-shadow: 0 6px 8px rgba(0, 0, 0, 0.8);
     z-index: 1;
@@ -216,7 +220,6 @@
 
   .chat-field {
     width: 100%;
-    height: 100%;
     padding-top: 80px;
     padding-left: 2rem;
     padding-right: 2rem;
@@ -230,7 +233,6 @@
     border-radius: 15px;
     padding: 1rem 1rem 4rem 1rem;
     position: relative;
-    height: 93%;
     background-color: #615550;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   }
@@ -243,13 +245,13 @@
 
   .users-list {
     width: 100%;
-    height: 70%;
+    /* height: 70%; */
     overflow-y: auto;
   }
 
-  .search-field {
+  /* .search-field {
     height: 30%;
-  }
+  } */
 
   .message-box {
     position: absolute;

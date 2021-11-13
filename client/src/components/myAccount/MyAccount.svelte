@@ -190,10 +190,12 @@
 <style>
   .update-form {
     width: 30vw;
+    max-width: 400px;
   }
 
   .pw-form {
     width: 30vw;
+    max-width: 400px;
   }
 
   .text-red {

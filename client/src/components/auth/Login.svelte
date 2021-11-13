@@ -98,6 +98,7 @@
 <style>
   .login {
     width: 50vw;
+    max-width: 600px;
   }
 
   .text-red {
