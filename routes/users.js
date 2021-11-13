@@ -15,4 +15,6 @@ router.put('/update/user', isAuth, usersController.updateUserData);
 
 router.put('/changePw', isAuth, usersController.changePassword);
 
+router.get('/searchUsers', isAuth, usersController.searchUsers);
+
 module.exports = router;

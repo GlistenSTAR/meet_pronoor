@@ -87,7 +87,8 @@ exports.signin = async (req, res) => {
 
     const payload = {
       user: {
-        id: user.id
+        id: user.id,
+        nickname: user.nickname
       }
     };
 
@@ -172,6 +173,23 @@ exports.changePassword = async (req, res) => {
     });
 
     res.json({ msg: "success" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+}
+
+exports.searchUsers = async (req, res) => {
+  try {
+    let users = await User.findAll();
+
+    const index = users.findIndex(user => {
+      return user.id.toString() === req.user.id.toString();
+    });
+
+    users.splice(index, 1);
+
+    res.json({ users: users, msg: 'success' });
   } catch (error) {
     console.log(error);
     res.status(500).json(error);

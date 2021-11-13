@@ -8,6 +8,7 @@ const multer = require('multer');
 const sequelize = require('./utils/database');
 
 const usersRoute = require('./routes/users');
+const messageRoute = require('./routes/messages');
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/api/users', usersRoute);
+app.use('/api/messages', messageRoute);
 
 const port = parseInt(process.env.PORT, 10) || 7000;
 
@@ -57,4 +59,3 @@ sequelize.sync()
     server.listen(port, () => console.log(`Server is running on port: ${port}`));
   })
   .catch(err => console.log(`DB Connection Error: ${err}`));
-

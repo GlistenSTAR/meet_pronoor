@@ -1,86 +1,177 @@
 <script>
+  import { onMount } from "svelte";
   import { Icon } from "svelte-fontawesome";
   import { faMicrophone } from "@fortawesome/free-solid-svg-icons/faMicrophone";
   import { faVideo } from "@fortawesome/free-solid-svg-icons/faVideo";
+  import { getNotificationsContext } from "svelte-notifications";
 
-  import { user } from "../../store";
+  import {
+    user,
+    friends,
+    selectedFriend,
+    socketURL,
+    messages,
+  } from "../../store";
+  import { searchUsers } from "../../apis/auth";
+  import { saveMessage } from "../../apis/message";
+  import isEmpty from "../../utils/is-empty";
 
   import MessageItem from "./MessageItem.svelte";
+  import FriendItem from "./FriendItem.svelte";
+
+  const { addNotification } = getNotificationsContext();
 
   let search_key;
   let userData;
+  let totalFriends;
+  let friend;
+  let socket_url;
+  let message = "";
+  let msgs;
+
+  messages.subscribe((v) => {
+    msgs = v;
+  });
+
+  socketURL.subscribe((v) => {
+    socket_url = v;
+  });
+
+  onMount(() => {
+    searchUsers();
+    document.getElementsByClassName("msg-appear-field")[0].scrollTop =
+      document.getElementsByClassName("msg-appear-field")[0].scrollHeight;
+  });
 
   user.subscribe((v) => {
     userData = v;
   });
+
+  friends.subscribe((v) => {
+    totalFriends = v;
+  });
+
+  selectedFriend.subscribe((v) => {
+    friend = v;
+  });
+
+  const sendMessage = async () => {
+    if (isEmpty(friend)) {
+      addNotification({
+        text: "Select a friend!",
+        position: "top-right",
+        type: "danger",
+        removeAfter: 3000,
+      });
+    } else if (isEmpty(message)) {
+      addNotification({
+        text: "Input a message!",
+        position: "top-right",
+        type: "danger",
+        removeAfter: 3000,
+      });
+    } else {
+      const msgDada = {
+        sender: userData.nickname,
+        receiver: friend.nickname,
+        message: message,
+        sender_time: new Date().toLocaleTimeString(),
+      };
+
+      const res = await saveMessage(msgDada);
+
+      if (res === "success") {
+        message = "";
+      }
+    }
+  };
 </script>
 
 <div class="d-flex total-height">
   <!-- Users list field -->
-  <div class="users-list">
-    <img src={`../../${userData.avatar}`} alt="avatar" class="main-avatar" />
-    <p class="mt-2 font-weight-bolder avatar-text">Night Fury</p>
-    <input
-      type="text"
-      class="form-control form-control-sm mt-3 search-input"
-      placeholder="Search users"
-      bind:value={search_key}
-    />
+  <div class="users-field">
+    <div class="search-field">
+      <img src={`../../${userData.avatar}`} alt="avatar" class="main-avatar" />
+      <p class="mt-2 font-weight-bolder avatar-text">{userData.nickname}</p>
+      <input
+        type="text"
+        class="form-control form-control-sm mt-3 search-input"
+        placeholder="Search users"
+        bind:value={search_key}
+      />
+    </div>
+    <div class="users-list mt-3 text-left">
+      {#if !isEmpty(totalFriends)}
+        {#each totalFriends as friend}
+          <FriendItem {friend} />
+        {/each}
+      {/if}
+    </div>
   </div>
 
   <!-- Chat field -->
   <div class="chat-field">
     <!-- Tools field -->
     <div class="d-flex justify-content-between px-3">
-      <div class="d-flex align-items-center">
-        <img src="./default.png" alt="avatar2" class="friend-avatar" />
-        <span class="ml-2 font-weight-bolder avatar-text">Tiger</span>
-      </div>
+      {#if !isEmpty(friend)}
+        <div class="d-flex align-items-center">
+          <img
+            src={`../../${friend.avatar}`}
+            alt="avatar2"
+            class="friend-avatar"
+          />
+          <span class="ml-2 font-weight-bolder avatar-text"
+            >{friend.nickname}</span
+          >
+        </div>
+      {:else}
+        <p class="m-0 font-weight-bolder avatar-text">Select a friend</p>
+      {/if}
       <div class="d-flex align-items-center">
         <Icon icon={faMicrophone} class="icon mr-3" />
         <Icon icon={faVideo} class="icon" />
       </div>
     </div>
-    <div class="message-field bg-secondary mt-2">
-      <div class="d-flex justify-content-center">
+    <div class="message-field mt-2">
+      <form
+        class="d-flex justify-content-center"
+        on:submit|preventDefault={sendMessage}
+      >
         <input
           type="text"
           placeholder="Type a message"
           class="form-control-lg form-control message-box"
+          bind:value={message}
         />
-      </div>
+      </form>
       <div class="msg-appear-field">
-        <MessageItem />
-        <MessageItem />
-        <MessageItem />
-        <MessageItem />
-        <MessageItem />
-        <MessageItem />
-        <MessageItem />
-        <MessageItem />
-        <MessageItem />
-        <MessageItem />
-        <MessageItem />
-        <MessageItem />
-        <MessageItem />
+        {#if !isEmpty(msgs)}
+          {#each msgs as msg}
+            <MessageItem message={msg} />
+          {/each}
+        {/if}
       </div>
     </div>
   </div>
 </div>
 
 <style>
-  .users-list {
+  .users-field {
+    position: relative;
     width: 350px;
+    height: 100%;
     background-color: #615550;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.8);
     z-index: 1;
-    padding: 0 1rem;
+    padding-top: 70px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: 2rem;
   }
 
   .main-avatar {
     width: 100px;
     height: 100px;
-    margin-top: 70px;
     border-radius: 10px;
     border: 2px solid #f96714;
     cursor: pointer;
@@ -96,11 +187,13 @@
 
   .chat-field {
     width: 100%;
+    height: 100%;
     padding-top: 80px;
     padding-left: 2rem;
     padding-right: 2rem;
     padding-bottom: 2rem;
-    background-color: #f7f3ba;
+    background-color: white;
+    /* background-color: #f7f3ba; */
     position: relative;
   }
 
@@ -109,6 +202,7 @@
     padding: 1rem 1rem 4rem 1rem;
     position: relative;
     height: 93%;
+    background-color: #615550;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   }
 
@@ -116,6 +210,16 @@
     height: 100%;
     width: 100%;
     overflow-y: auto;
+  }
+
+  .users-list {
+    width: 100%;
+    height: 70%;
+    overflow-y: auto;
+  }
+
+  .search-field {
+    height: 30%;
   }
 
   .message-box {
@@ -148,5 +252,28 @@
 
   .avatar-text {
     color: #f96714;
+  }
+
+  /* Custom scrollbar */
+  /* width */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  /* Track */
+  ::-webkit-scrollbar-track {
+    /* box-shadow: inset 0 0 5px grey; */
+    border-radius: 10px;
+  }
+
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: lightgrey;
+    border-radius: 10px;
+  }
+
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(167, 165, 165);
   }
 </style>

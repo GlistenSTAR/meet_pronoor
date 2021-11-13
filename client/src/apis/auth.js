@@ -1,7 +1,7 @@
 import { navigate } from 'svelte-navigator';
 
 import api from '../utils/api';
-import { user, isAuthenticated, errors } from '../store';
+import { user, isAuthenticated, errors, friends } from '../store';
 
 // Load User
 export const loadUser = async () => {
@@ -58,6 +58,7 @@ export const logout = async () => {
 export const updateUserData = async userData => {
   const res = await api.put('/users/update/user', userData);
   if (res.msg === 'success') {
+    loadUser();
     errors.set({});
     return res.msg;
   } else {
@@ -77,5 +78,17 @@ export const changePassword = async pwData => {
   } else {
     console.log(res.data);
     errors.set(res.data);
+  }
+}
+
+// Search users
+export const searchUsers = async () => {
+  const res = await api.get('/users/searchUsers');
+
+  if (res.msg === 'success') {
+    console.log(res.msg);
+    friends.set(res.users);
+  } else {
+    console.log(res.data);
   }
 }

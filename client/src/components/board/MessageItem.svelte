@@ -1,18 +1,65 @@
-<div class="d-flex justify-content-start">
-  <div class="message-item mb-2">
-    <div class="d-flex justify-content-md-between px-2">
-      <div class="d-flex align-items-center">
-        <img src="./default.png" alt="avatar" class="friend-avatar" />
-        <span class="ml-2 font-weight-bolder avatar-text">Tiger</span>
+<script>
+  import { user, selectedFriend } from "../../store";
+
+  let userData;
+  let friend;
+
+  selectedFriend.subscribe((v) => {
+    friend = v;
+  });
+
+  user.subscribe((v) => {
+    userData = v;
+  });
+
+  export let message;
+</script>
+
+{#if userData.nickname === message.receiver}
+  <div class="d-flex justify-content-start">
+    <div class="message-item mb-2">
+      <div class="d-flex justify-content-md-between px-2">
+        <div class="d-flex align-items-center">
+          <img
+            src={`../../${friend.avatar}`}
+            alt="avatar"
+            class="friend-avatar"
+          />
+          <span class="ml-2 font-weight-bolder avatar-text"
+            >{message.sender}</span
+          >
+        </div>
+        <div class="d-flex align-items-center">
+          <p class="m-0">{message.receiver_time}</p>
+        </div>
       </div>
-      <div class="d-flex align-items-center">
-        <p class="m-0">01:26 AM</p>
-      </div>
+      <hr class="my-2" />
+      <p class="mb-2 px-2 text-left">{message.message}</p>
     </div>
-    <hr class="my-2" />
-    <p class="mb-2 px-2 text-left">asdfsdafsadfs sadlfjksad asdfsad asdf</p>
   </div>
-</div>
+{:else}
+  <div class="d-flex justify-content-end">
+    <div class="message-item mb-2">
+      <div class="d-flex justify-content-md-between px-2">
+        <div class="d-flex align-items-center">
+          <img
+            src={`../../${userData.avatar}`}
+            alt="avatar"
+            class="friend-avatar"
+          />
+          <span class="ml-2 font-weight-bolder avatar-text"
+            >{message.sender}</span
+          >
+        </div>
+        <div class="d-flex align-items-center">
+          <p class="m-0">{message.sender_time}</p>
+        </div>
+      </div>
+      <hr class="my-2" />
+      <p class="mb-2 px-2 text-left">{message.message}</p>
+    </div>
+  </div>
+{/if}
 
 <style>
   .message-item {
