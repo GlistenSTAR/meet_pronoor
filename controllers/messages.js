@@ -47,9 +47,9 @@ exports.getMessages = async (req, res) => {
 
     if (!isEmpty(senderMessage) && !isEmpty(receiveMessages)) {
       messages = senderMessage.concat(receiveMessages);
-    } else if (isEmpty(messages) && !isEmpty(receiveMessages)) {
+    } else if (isEmpty(senderMessage) && !isEmpty(receiveMessages)) {
       messages = receiveMessages;
-    } else if (!isEmpty(messages) && isEmpty(receiveMessages)) {
+    } else if (!isEmpty(senderMessage) && isEmpty(receiveMessages)) {
       messages = senderMessage;
     }
 

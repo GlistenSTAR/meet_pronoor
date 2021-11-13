@@ -10,7 +10,12 @@ const sequelize = require('./utils/database');
 const usersRoute = require('./routes/users');
 const messageRoute = require('./routes/messages');
 
+const Message = require('./models/message');
+
 const app = express();
+
+const server = http.createServer(app);
+const io = require('socket.io')(server);
 
 const fileStorage = multer.diskStorage({
   destination: (req, file, callback) => {
@@ -49,13 +54,33 @@ app.use((req, res, next) => {
 app.use('/api/users', usersRoute);
 app.use('/api/messages', messageRoute);
 
+io.on('connection', socket => {
+  console.log('Client Connected!');
+
+  socket.on('createMessage', data => {
+    socket.emit('createMessage', data);
+  });
+
+  socket.on('updateTime', data => {
+    Message.update({
+      receiver_time: data.receiver_time
+    }, {
+      where: {
+        sender: data.sender,
+        receiver: data.receiver,
+        sender_time: data.sender_time,
+      }
+    })
+  })
+})
+
 const port = parseInt(process.env.PORT, 10) || 7000;
 
 sequelize.sync()
   .then(() => {
     console.log('PostgresDB Connected!');
-    app.set('port', port);
-    const server = http.createServer(app);
+    // app.set('port', port);
+    // const server = http.createServer(app);
     server.listen(port, () => console.log(`Server is running on port: ${port}`));
   })
   .catch(err => console.log(`DB Connection Error: ${err}`));

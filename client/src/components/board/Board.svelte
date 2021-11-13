@@ -1,9 +1,10 @@
 <script>
-  import { onMount } from "svelte";
+  import { afterUpdate, onMount } from "svelte";
   import { Icon } from "svelte-fontawesome";
   import { faMicrophone } from "@fortawesome/free-solid-svg-icons/faMicrophone";
   import { faVideo } from "@fortawesome/free-solid-svg-icons/faVideo";
   import { getNotificationsContext } from "svelte-notifications";
+  import openSocket from "socket.io-client";
 
   import {
     user,
@@ -37,10 +38,34 @@
     socket_url = v;
   });
 
+  const socket = openSocket(socket_url);
+
+  socket.on("createMessage", (data) => {
+    data.receiver_time = new Date().toLocaleTimeString();
+    const newMsg = new Array();
+    newMsg.sender = data.sender;
+    newMsg.receiver = data.receiver;
+    newMsg.message = data.message;
+    newMsg.sender_time = data.sender_time;
+    newMsg.receiver_time = data.receiver_time;
+    if (isEmpty(msgs)) {
+      msgs = newMsg;
+    } else {
+      msgs.push(newMsg);
+    }
+    messages.set(msgs);
+    socket.emit("updateTime", data);
+  });
+
   onMount(() => {
     searchUsers();
-    document.getElementsByClassName("msg-appear-field")[0].scrollTop =
-      document.getElementsByClassName("msg-appear-field")[0].scrollHeight;
+  });
+
+  afterUpdate(() => {
+    if (!isEmpty(document.getElementsByClassName("msg-appear-field")[0])) {
+      document.getElementsByClassName("msg-appear-field")[0].scrollTop =
+        document.getElementsByClassName("msg-appear-field")[0].scrollHeight;
+    }
   });
 
   user.subscribe((v) => {
@@ -76,9 +101,10 @@
         receiver: friend.nickname,
         message: message,
         sender_time: new Date().toLocaleTimeString(),
+        receiver_time: "",
       };
 
-      const res = await saveMessage(msgDada);
+      const res = await saveMessage(msgDada, socket);
 
       if (res === "success") {
         message = "";
