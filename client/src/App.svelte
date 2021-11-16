@@ -9,7 +9,6 @@
 
 	import Register from "./components/auth/Register.svelte";
 	import Login from "./components/auth/Login.svelte";
-	import MyAccount from "./components/myAccount/MyAccount.svelte";
 	import Home from "./components/layout/Home.svelte";
 
 	onMount(() => {
@@ -32,9 +31,6 @@
 			</PrivateRoute>
 			<Route path="/auth/register" component={Register} />
 			<Route path="/auth/login" component={Login} />
-			<PrivateRoute path="/myAccount">
-				<MyAccount />
-			</PrivateRoute>
 		</Router>
 	</Notifications>
 </main>

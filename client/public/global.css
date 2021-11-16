@@ -63,7 +63,7 @@ button:focus {
 }
 
 .notification {
-	top:50px;
+	top:60px;
 }
 
 .full-height {
@@ -72,4 +72,17 @@ button:focus {
 
 .total-height{
 	height: 100vh;
+}
+
+.auth {
+	background-color: #615550;
+	position: relative;
+}
+
+h3:focus-visible, h4:focus-visible {
+	outline: none!important;
+}
+
+.modal-backdrop.show {
+	opacity: 0.3!important;
 }

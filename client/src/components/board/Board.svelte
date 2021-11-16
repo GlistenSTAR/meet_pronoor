@@ -1,10 +1,10 @@
 <script>
   import { afterUpdate, onMount } from "svelte";
   import { Icon } from "svelte-fontawesome";
-  import { faMicrophone } from "@fortawesome/free-solid-svg-icons/faMicrophone";
-  import { faVideo } from "@fortawesome/free-solid-svg-icons/faVideo";
+  import { faEllipsisV } from "@fortawesome/free-solid-svg-icons/faEllipsisV";
   import { getNotificationsContext } from "svelte-notifications";
   import openSocket from "socket.io-client";
+  import Dropdown from "sv-bootstrap-dropdown";
 
   import {
     user,
@@ -13,12 +13,15 @@
     socketURL,
     messages,
   } from "../../store";
-  import { searchUsers } from "../../apis/auth";
+  import { searchUsers, logout } from "../../apis/auth";
   import { saveMessage } from "../../apis/message";
   import isEmpty from "../../utils/is-empty";
 
   import MessageItem from "./MessageItem.svelte";
   import FriendItem from "./FriendItem.svelte";
+  import Profile from "../myAccount/Profile.svelte";
+  import Security from "../myAccount/Security.svelte";
+  import Greeting from "./Greeting.svelte";
 
   const { addNotification } = getNotificationsContext();
 
@@ -29,6 +32,8 @@
   let socket_url;
   let message = "";
   let msgs = [];
+  let dropdownTrigger;
+  let innerHeight;
 
   messages.subscribe((v) => {
     msgs = v;
@@ -113,26 +118,66 @@
     }
   };
 
-  let innerHeight;
+  const clickLogout = () => {
+    logout();
+  };
+
+  window.process = {
+    env: "production",
+  };
 </script>
 
 <svelte:window bind:innerHeight />
+<Profile />
+<Security />
 <div class="d-flex total-height">
   <!-- Users list field -->
   <div class="users-field" style="height: {innerHeight}px;">
-    <!-- <div class="search-field"> -->
-    <img src={`../../${userData.avatar}`} alt="avatar" class="main-avatar" />
-    <p class="mt-2 font-weight-bolder avatar-text">{userData.nickname}</p>
+    <div>
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+          <img
+            src={`../../${userData.avatar}`}
+            alt="avatar"
+            class="main-avatar"
+          />
+          <span class="ml-2 font-weight-bolder user-nickname"
+            >{userData.nickname}</span
+          >
+        </div>
+        <Dropdown triggerElement={dropdownTrigger}>
+          <button type="button" class="btn btn-link" bind:this={dropdownTrigger}
+            ><Icon icon={faEllipsisV} class="icon" /></button
+          >
+          <div slot="DropdownMenu">
+            <button
+              class="dropdown-item"
+              type="button"
+              data-toggle="modal"
+              data-target="#profile">Profile</button
+            >
+            <button
+              class="dropdown-item"
+              type="button"
+              data-toggle="modal"
+              data-target="#security">Security</button
+            >
+            <button class="dropdown-item" type="button" on:click={clickLogout}
+              >Logout</button
+            >
+          </div>
+        </Dropdown>
+      </div>
+    </div>
     <input
       type="text"
-      class="form-control form-control-sm mt-3 search-input"
+      class="form-control form-control-sm mt-2 search-input"
       placeholder="Search users"
       bind:value={search_key}
     />
-    <!-- </div> -->
     <div
       class="users-list mt-3 text-left"
-      style="height: {innerHeight - 280}px;"
+      style="height: {innerHeight - 190}px;"
     >
       {#if !isEmpty(totalFriends)}
         {#each totalFriends as friend}
@@ -142,51 +187,47 @@
     </div>
   </div>
 
-  <!-- Chat field -->
-  <div class="chat-field" style="height: {innerHeight}px;">
-    <!-- Tools field -->
-    <div class="d-flex justify-content-between px-3">
-      {#if !isEmpty(friend)}
+  {#if isEmpty(friend)}
+    <Greeting />
+  {:else}
+    <!-- Chat field -->
+    <div class="chat-field" style="height: {innerHeight}px;">
+      <!-- Tools field -->
+      <div class="d-flex justify-content-start px-3">
         <div class="d-flex align-items-center">
           <img
             src={`../../${friend.avatar}`}
             alt="avatar2"
             class="friend-avatar"
           />
-          <span class="ml-2 font-weight-bolder avatar-text"
+          <span class="ml-2 font-weight-bolder friend-nickname"
             >{friend.nickname}</span
           >
         </div>
-      {:else}
-        <p class="m-0 font-weight-bolder avatar-text">Select a friend</p>
-      {/if}
-      <div class="d-flex align-items-center">
-        <Icon icon={faMicrophone} class="icon mr-3" />
-        <Icon icon={faVideo} class="icon" />
+      </div>
+      <!-- Message field -->
+      <div class="message-field mt-2" style="height: {innerHeight - 140}px;">
+        <form
+          class="d-flex justify-content-center"
+          on:submit|preventDefault={sendMessage}
+        >
+          <input
+            type="text"
+            placeholder="Type a message"
+            class="form-control-lg form-control message-box"
+            bind:value={message}
+          />
+        </form>
+        <div class="msg-appear-field">
+          {#if !isEmpty(msgs)}
+            {#each msgs as msg}
+              <MessageItem message={msg} />
+            {/each}
+          {/if}
+        </div>
       </div>
     </div>
-    <!-- Message field -->
-    <div class="message-field mt-2" style="height: {innerHeight - 140}px;">
-      <form
-        class="d-flex justify-content-center"
-        on:submit|preventDefault={sendMessage}
-      >
-        <input
-          type="text"
-          placeholder="Type a message"
-          class="form-control-lg form-control message-box"
-          bind:value={message}
-        />
-      </form>
-      <div class="msg-appear-field">
-        {#if !isEmpty(msgs)}
-          {#each msgs as msg}
-            <MessageItem message={msg} />
-          {/each}
-        {/if}
-      </div>
-    </div>
-  </div>
+  {/if}
 </div>
 
 <style>
@@ -203,29 +244,28 @@
   }
 
   .main-avatar {
-    width: 100px;
-    height: 100px;
+    width: 50px;
+    height: 50px;
     border-radius: 10px;
-    border: 2px solid #f96714;
+    border: 2px solid #cecbc9;
     cursor: pointer;
   }
 
   .friend-avatar {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    border: 2px solid #f96714;
+    border: 2px solid #615550;
     cursor: pointer;
   }
 
   .chat-field {
     width: 100%;
-    padding-top: 80px;
-    padding-left: 2rem;
-    padding-right: 2rem;
-    padding-bottom: 2rem;
-    background-color: white;
-    /* background-color: #f7f3ba; */
+    padding-top: 70px;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-bottom: 1.5rem;
+    background-color: #cecbc9;
     position: relative;
   }
 
@@ -245,44 +285,44 @@
 
   .users-list {
     width: 100%;
-    /* height: 70%; */
     overflow-y: auto;
   }
-
-  /* .search-field {
-    height: 30%;
-  } */
 
   .message-box {
     position: absolute;
     bottom: 10px;
-    width: 90%;
+    width: 80%;
+    max-width: 800px;
     border-radius: 20px;
     padding: 10px 25px;
-    border-color: #f96714 !important;
+    border-color: #cecbc9 !important;
   }
   .message-box:focus {
-    border-color: #f96714 !important;
-    box-shadow: 0 0 0 0.2rem rgb(249, 103, 20, 25%);
+    border-color: #cecbc9 !important;
+    box-shadow: 0 0 0 0.2rem rgba(211, 209, 209, 0.25);
   }
 
   .search-input:focus {
-    border-color: #f96714 !important;
-    box-shadow: 0 0 0 0.2rem rgb(249, 103, 20, 25%);
+    border-color: #cecbc9 !important;
+    box-shadow: 0 0 0 0.2rem rgba(211, 209, 209, 0.25);
   }
 
   :global(.icon) {
-    color: #f96714;
+    color: #cecbc9;
     font-size: 1.5em;
   }
 
   :global(.icon:hover) {
-    font-size: 1.7em;
+    /* font-size: 1.7em; */
     cursor: pointer;
   }
 
-  .avatar-text {
-    color: #f96714;
+  .user-nickname {
+    color: #cecbc9;
+  }
+
+  .friend-nickname {
+    color: #615550;
   }
 
   /* Custom scrollbar */

@@ -43,12 +43,13 @@
   };
 </script>
 
-<div class="d-flex justify-content-center align-items-center full-height">
+<div class="d-flex justify-content-center align-items-center full-height auth">
+  <img src="../logo.png" alt="logo" class="logo" />
   <div>
-    <h3>Login</h3>
+    <h3 class="text-white">Login</h3>
     <div class="d-flex justify-content-center">
       <form
-        class="text-left py-3 login"
+        class="text-left text-white py-3 login"
         on:submit|preventDefault={signIn}
         novalidate
       >
@@ -81,7 +82,7 @@
           {/if}
         </div>
         <div class="mt-4">
-          <button type="submit" class="btn btn-primary">Sign In</button>
+          <button type="submit" class="btn btn-info">Sign In</button>
           <Router>
             <Link to="/auth/register">
               <button type="button" class="btn btn-secondary ml-3"
@@ -97,11 +98,23 @@
 
 <style>
   .login {
-    width: 50vw;
-    max-width: 600px;
+    width: 35vw;
+    max-width: 400px;
+    min-width: 250px;
   }
 
   .text-red {
-    color: red;
+    color: rgb(255, 92, 92);
+  }
+
+  .logo {
+    width: 300px;
+    position: absolute;
+    top: 00.5rem;
+    left: 1rem;
+  }
+
+  .logo:hover {
+    cursor: pointer;
   }
 </style>
