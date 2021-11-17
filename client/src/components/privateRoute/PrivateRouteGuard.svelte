@@ -1,14 +1,14 @@
 <script>
   import { useNavigate, useLocation } from "svelte-navigator";
-  // import { auth } from "../../store";
+  // import { user } from "../../store";
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  // let isAuth;
+  // let userData;
 
-  // auth.isAuthenticated.subscribe((value) => {
-  //   isAuth = value;
+  // user.subscribe((value) => {
+  //   userData = value;
   // });
 
   $: if (!localStorage.token) {

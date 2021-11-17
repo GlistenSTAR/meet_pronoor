@@ -23,6 +23,21 @@ const User = sequelize.define('user', {
   },
   avatar: {
     type: Sequelize.STRING
+  },
+  role: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    defaultValue: 'user'
+  },
+  status: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    defaultValue: 'off'
+  },
+  block: {
+    type: Sequelize.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   }
 });
 

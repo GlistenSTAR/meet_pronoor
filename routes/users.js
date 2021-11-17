@@ -15,6 +15,18 @@ router.put('/update/user', isAuth, usersController.updateUserData);
 
 router.put('/changePw', isAuth, usersController.changePassword);
 
-router.get('/searchUsers', isAuth, usersController.searchUsers);
+router.get('/getUsers', isAuth, usersController.getUsers);
+
+router.get('/getUsersExpOne/:nickname', isAuth, usersController.getUsersExpOne);
+
+router.get('/getFriends', isAuth, usersController.getFriends);
+
+router.get('/logout', isAuth, usersController.logoutUser);
+
+router.delete('/deleteUser/:nickname', isAuth, usersController.deleteUser);
+
+router.put('/changeRole', isAuth, usersController.changeRole);
+
+router.put('/setState', isAuth, usersController.setState);
 
 module.exports = router;

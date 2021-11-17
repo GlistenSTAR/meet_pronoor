@@ -5,6 +5,8 @@
   import { getNotificationsContext } from "svelte-notifications";
   import openSocket from "socket.io-client";
   import Dropdown from "sv-bootstrap-dropdown";
+  import FileDrop from "filedrop-svelte";
+  import RangeSlider from "svelte-range-slider-pips";
 
   import {
     user,
@@ -13,8 +15,8 @@
     socketURL,
     messages,
   } from "../../store";
-  import { searchUsers, logout } from "../../apis/auth";
-  import { saveMessage } from "../../apis/message";
+  import { getFriends, logout } from "../../apis/auth";
+  import { saveMessage, getMessages } from "../../apis/message";
   import isEmpty from "../../utils/is-empty";
 
   import MessageItem from "./MessageItem.svelte";
@@ -34,6 +36,10 @@
   let msgs = [];
   let dropdownTrigger;
   let innerHeight;
+  let innerWidth;
+  let file;
+  let live_time = [60];
+  let liveTime = "00:01:00";
 
   messages.subscribe((v) => {
     msgs = v;
@@ -46,26 +52,48 @@
   const socket = openSocket(socket_url);
 
   socket.on("createMessage", (data) => {
-    console.log("socket");
     data.receiver_time = new Date().toLocaleTimeString();
     const newMsg = new Array();
     newMsg.sender = data.sender;
     newMsg.receiver = data.receiver;
+    newMsg.message_type = data.message_type;
     newMsg.message = data.message;
     newMsg.sender_time = data.sender_time;
     newMsg.receiver_time = data.receiver_time;
-    if (isEmpty(msgs)) {
-      msgs[0] = newMsg;
-    } else {
-      msgs.push(newMsg);
+    if (data.message_type === "file") {
+      newMsg.filepath = data.filepath;
+      newMsg.filename = data.filename;
     }
-    console.log(newMsg);
-    messages.set(msgs);
+
+    // if (isEmpty(msgs)) {
+    //   msgs[0] = newMsg;
+    // } else {
+    //   msgs.push(newMsg);
+    // }
+
+    // messages.set(msgs);
+
     socket.emit("updateTime", data);
+
+    getMessages($selectedFriend.nickname);
+  });
+
+  socket.on("deleteMessage", (data) => {
+    const removeIndex = msgs.findIndex((msg) => {
+      return (
+        msg.sender === data.sender &&
+        msg.receiver === data.receiver &&
+        msg.sender_time === data.sender_time
+      );
+    });
+
+    msgs.splice(removeIndex, 1);
+    messages.set(msgs);
+    // getMessages($selectedFriend.nickname);
   });
 
   onMount(() => {
-    searchUsers();
+    getFriends();
   });
 
   afterUpdate(() => {
@@ -86,34 +114,61 @@
   });
 
   const sendMessage = async () => {
-    if (isEmpty(friend)) {
+    if (userData.block) {
+      addNotification({
+        text: "You are blocked!",
+        position: "top-right",
+        type: "warning",
+        removeAfter: 3000,
+      });
+    } else if (friend.block) {
+      addNotification({
+        text: `${friend.nickname} is blocked!`,
+        position: "top-right",
+        type: "warning",
+        removeAfter: 3000,
+      });
+    } else if (isEmpty(friend)) {
       addNotification({
         text: "Select a friend!",
         position: "top-right",
-        type: "danger",
+        type: "warning",
         removeAfter: 3000,
       });
-    } else if (isEmpty(message)) {
+    } else if (isEmpty(message) && isEmpty(file)) {
       addNotification({
         text: "Input a message!",
         position: "top-right",
-        type: "danger",
+        type: "warning",
         removeAfter: 3000,
       });
     } else {
-      const msgData = {
-        sender: userData.nickname,
-        receiver: friend.nickname,
-        message: message,
-        sender_time: new Date().toLocaleTimeString(),
-        receiver_time: "",
-      };
+      const msgData = new FormData();
+      if (isEmpty(file)) {
+        msgData.append("sender", userData.nickname);
+        msgData.append("receiver", friend.nickname);
+        msgData.append("message", message);
+        msgData.append("sender_time", new Date().toLocaleTimeString());
+        msgData.append("receiver_time", "");
+        msgData.append("message_type", "text");
+        msgData.append("live_time", live_time * 1000);
+      } else {
+        msgData.append("sender", userData.nickname);
+        msgData.append("receiver", friend.nickname);
+        msgData.append("sender_time", new Date().toLocaleTimeString());
+        msgData.append("receiver_time", "");
+        msgData.append("message", "");
+        msgData.append("file", file);
+        msgData.append("message_type", "file");
+        msgData.append("live_time", live_time * 1000);
+      }
 
       const res = await saveMessage(msgData);
 
-      if (res === "success") {
+      if (res.msg === "success") {
         message = "";
-        socket.emit("createMessage", msgData);
+        file = "";
+        socket.emit("createMessage", res.newMsg);
       }
     }
   };
@@ -122,12 +177,45 @@
     logout();
   };
 
+  const searchFriend = () => {
+    if (!isEmpty(search_key)) {
+      const search_result = totalFriends.filter((friend) => {
+        return friend.nickname.toLowerCase().search(search_key) !== -1;
+      });
+      friends.set(search_result);
+    } else {
+      getFriends();
+    }
+  };
+
+  const fileDrop = (e) => {
+    file = e.detail.files.accepted[0];
+    message = file.name;
+    document.querySelector(".message-box").focus();
+  };
+
+  const changeLiveTime = () => {
+    let hour = Math.floor(live_time / 3600);
+    if (hour < 10) {
+      hour = "0" + hour;
+    }
+    let minute = Math.floor((live_time % 3600) / 60);
+    if (minute < 10) {
+      minute = "0" + minute;
+    }
+    let second = live_time % 60;
+    if (second < 10) {
+      second = "0" + second;
+    }
+    liveTime = hour + ":" + minute + ":" + second;
+  };
+
   window.process = {
     env: "production",
   };
 </script>
 
-<svelte:window bind:innerHeight />
+<svelte:window bind:innerHeight bind:innerWidth />
 <Profile />
 <Security />
 <div class="d-flex total-height">
@@ -174,6 +262,7 @@
       class="form-control form-control-sm mt-2 search-input"
       placeholder="Search users"
       bind:value={search_key}
+      on:input={searchFriend}
     />
     <div
       class="users-list mt-3 text-left"
@@ -191,9 +280,12 @@
     <Greeting />
   {:else}
     <!-- Chat field -->
-    <div class="chat-field" style="height: {innerHeight}px;">
+    <div
+      class="chat-field"
+      style="height: {innerHeight}px;width:{innerWidth}px"
+    >
       <!-- Tools field -->
-      <div class="d-flex justify-content-start px-3">
+      <div class="d-flex justify-content-between px-3">
         <div class="d-flex align-items-center">
           <img
             src={`../../${friend.avatar}`}
@@ -204,9 +296,32 @@
             >{friend.nickname}</span
           >
         </div>
+        <div class="d-flex align-items-center">
+          <div style="width: 300px;">
+            <RangeSlider
+              bind:values={live_time}
+              min={30}
+              max={129600}
+              range="min"
+              on:change={changeLiveTime}
+            />
+          </div>
+          <input
+            type="text"
+            class="form-control live-time ml-3"
+            bind:value={liveTime}
+            readonly
+          />
+        </div>
       </div>
       <!-- Message field -->
       <div class="message-field mt-2" style="height: {innerHeight - 140}px;">
+        <FileDrop on:filedrop={fileDrop}>
+          <div
+            class="filedrop-field"
+            style="height: {innerHeight - 160}px;width:{innerWidth - 435}px"
+          />
+        </FileDrop>
         <form
           class="d-flex justify-content-center"
           on:submit|preventDefault={sendMessage}
@@ -234,6 +349,8 @@
   .users-field {
     position: relative;
     width: 350px;
+    /* max-width: 600px; */
+    min-width: 350px;
     background-color: #615550;
     box-shadow: 0 6px 8px rgba(0, 0, 0, 0.8);
     z-index: 1;
@@ -271,21 +388,35 @@
 
   .message-field {
     border-radius: 15px;
-    padding: 1rem 1rem 4rem 1rem;
+    padding: 0 1rem 5rem 1rem;
     position: relative;
     background-color: #615550;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  }
+
+  .filedrop-field {
+    width: 100%;
+    padding: 1rem;
+    position: absolute;
+    left: 10px;
+    top: 10px;
   }
 
   .msg-appear-field {
     height: 100%;
     width: 100%;
     overflow-y: auto;
+    z-index: 1;
   }
 
   .users-list {
     width: 100%;
     overflow-y: auto;
+  }
+
+  .live-time {
+    width: 100px;
+    font-size: 18px;
   }
 
   .message-box {
@@ -296,6 +427,7 @@
     border-radius: 20px;
     padding: 10px 25px;
     border-color: #cecbc9 !important;
+    z-index: 3;
   }
   .message-box:focus {
     border-color: #cecbc9 !important;

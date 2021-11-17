@@ -1,7 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import { getNotificationsContext } from "svelte-notifications";
-  import { Router, Link } from "svelte-navigator";
+  import { Router, Link, navigate } from "svelte-navigator";
 
   import { register } from "../../apis/auth";
   import { errors } from "../../store";
@@ -10,6 +10,10 @@
 
   onMount(() => {
     errors.set({});
+
+    if (localStorage.token) {
+      navigate("/", { replace: true });
+    }
   });
 
   let newUser = {

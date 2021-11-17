@@ -4,20 +4,23 @@ const crypto = require('crypto');
 const express = require('express');
 const bodyParser = require('body-parser');
 const multer = require('multer');
+const bcrypt = require('bcryptjs');
 
 const sequelize = require('./utils/database');
+const { deleteFile } = require('./utils/fileHelper');
 
 const usersRoute = require('./routes/users');
 const messageRoute = require('./routes/messages');
 
 const Message = require('./models/message');
+const User = require('./models/user');
 
 const app = express();
 
 const server = http.createServer(app);
 const io = require('socket.io')(server);
 
-const fileStorage = multer.diskStorage({
+const avatarStorage = multer.diskStorage({
   destination: (req, file, callback) => {
     callback(null, 'client/public/avatars');
   },
@@ -29,7 +32,16 @@ const fileStorage = multer.diskStorage({
   }
 });
 
-const fileFilter = (req, file, callback) => {
+const fileStorage = multer.diskStorage({
+  destination: (req, file, callback) => {
+    callback(null, 'client/public/files');
+  },
+  filename: (req, file, callback) => {
+    callback(null, file.originalname);
+  }
+});
+
+const avatarFilter = (req, file, callback) => {
   const fileTypes = ['image/png', 'image/jpg', 'image/jpeg'];
   if (fileTypes.includes(file.mimetype)) {
     callback(null, true);
@@ -40,9 +52,11 @@ const fileFilter = (req, file, callback) => {
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).single('avatar'));
+app.use('/api/users', multer({ storage: avatarStorage, fileFilter: avatarFilter }).single('avatar'));
+app.use('/api/messages', multer({ storage: fileStorage }).single('file'));
 
 app.use('/client/public/avatars', express.static(path.join(__dirname, 'client/public/avatars')));
+app.use('/client/public/files', express.static(path.join(__dirname, 'client/public/files')));
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -57,12 +71,24 @@ app.use('/api/messages', messageRoute);
 io.on('connection', socket => {
   console.log('Client Connected!');
   socket.on('createMessage', data => {
-    console.log('socket');
+    setTimeout(() => {
+      if (data.message_type === 'file') {
+        deleteFile(path.join(__dirname, 'client/public/', data.filepath));
+      }
+
+      Message.destroy({
+        where: {
+          id: data.id
+        }
+      });
+
+      io.emit('deleteMessage', data);
+    }, data.live_time);
     io.emit('createMessage', data);
   });
 
   socket.on('updateTime', data => {
-    Message.update({
+    const message = Message.update({
       receiver_time: data.receiver_time
     }, {
       where: {
@@ -70,7 +96,9 @@ io.on('connection', socket => {
         receiver: data.receiver,
         sender_time: data.sender_time,
       }
-    })
+    });
+
+    io.emit('create_message');
   });
 });
 
@@ -79,9 +107,32 @@ const port = parseInt(process.env.PORT, 10) || 7000;
 
 sequelize.sync()
   .then(() => {
+    return User.findByPk(1);
+  })
+  .then(user => {
+    if (user) {
+      return user;
+    }
+
+    const admin = {
+      nickname: 'Administrator',
+      email: 'admin@email.com',
+      password: '123456',
+      avatar: 'avatars/default.png',
+      role: 'admin'
+    };
+
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(admin.password, salt, (err, hash) => {
+        if (err) throw err;
+        admin.password = hash;
+
+        return User.create(admin);
+      });
+    });
+  })
+  .then(() => {
     console.log('PostgresDB Connected!');
-    // app.set('port', port);
-    // const server = http.createServer(app);
     server.listen(port, () => console.log(`Server is running on port: ${port}`));
   })
   .catch(err => console.log(`DB Connection Error: ${err}`));

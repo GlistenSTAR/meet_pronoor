@@ -1,8 +1,14 @@
+const path = require('path');
+const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const config = require('config');
 
 const User = require('../models/user');
+// const Friend = require('../models/friend');
+const Message = require('../models/message');
+
+const { deleteFile } = require('../utils/fileHelper');
 
 const validateRegisterInput = require('../validation/register');
 const validateLoginInput = require('../validation/login');
@@ -85,10 +91,19 @@ exports.signin = async (req, res) => {
       return res.status(400).json(errors);
     }
 
+    await User.update({
+      status: 'on'
+    }, {
+      where: {
+        email: req.body.email
+      }
+    });
+
     const payload = {
       user: {
         id: user.id,
-        nickname: user.nickname
+        nickname: user.nickname,
+        role: user.role
       }
     };
 
@@ -179,17 +194,173 @@ exports.changePassword = async (req, res) => {
   }
 }
 
-exports.searchUsers = async (req, res) => {
+exports.getUsers = async (req, res) => {
+  try {
+    let users = await User.findAll();
+
+    // const index = users.findIndex(user => {
+    //   return user.id.toString() === req.user.id.toString();
+    // });
+
+    // users.splice(index, 1);
+
+    users.sort((a, b) => {
+      var x = a.nickname.toLowerCase();
+      var y = b.nickname.toLowerCase();
+      if (x < y) { return -1; }
+      if (x > y) { return 1; }
+      return 0;
+    });
+
+    res.json({ users: users, msg: 'success' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+}
+
+exports.getUsersExpOne = async (req, res) => {
   try {
     let users = await User.findAll();
 
     const index = users.findIndex(user => {
+      return user.nickname === req.params.nickname;
+    });
+
+    users.splice(index, 1);
+
+    users.sort((a, b) => {
+      var x = a.nickname.toLowerCase();
+      var y = b.nickname.toLowerCase();
+      if (x < y) { return -1; }
+      if (x > y) { return 1; }
+      return 0;
+    });
+
+    res.json({ users: users, msg: 'success' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+}
+
+exports.getFriends = async (req, res) => {
+  try {
+    let users = await User.findAll();
+
+    let index = users.findIndex(user => {
       return user.id.toString() === req.user.id.toString();
     });
 
     users.splice(index, 1);
 
+    // index = users.findIndex(user => {
+    //   return user.role.toString() === 'admin';
+    // });
+
+    // users.splice(index, 1);
+
+    users.sort((a, b) => {
+      var x = a.nickname.toLowerCase();
+      var y = b.nickname.toLowerCase();
+      if (x < y) { return -1; }
+      if (x > y) { return 1; }
+      return 0;
+    });
+
     res.json({ users: users, msg: 'success' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+}
+
+exports.logoutUser = async (req, res) => {
+  try {
+    await User.update({
+      status: 'off'
+    }, {
+      where: {
+        id: req.user.id
+      }
+    });
+
+    res.json({ msg: 'success' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+}
+
+// Delete user
+exports.deleteUser = async (req, res) => {
+  try {
+    await User.destroy({
+      where: {
+        nickname: req.params.nickname
+      }
+    });
+
+    const fileMessage = await Message.findAll({
+      where: {
+        sender: req.params.nickname,
+        message_type: 'file'
+      }
+    });
+
+    fileMessage.forEach(message => {
+      deleteFile(path.join(__dirname, '../client/public/', message.filepath));
+    });
+
+    await Message.destroy({
+      where: {
+        sender: req.params.nickname
+      }
+    });
+
+    // await Message.destroy({
+    //   where: {
+    //     receiver: req.params.nickname
+    //   }
+    // });
+
+    res.json({ msg: 'success' })
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+}
+
+// Change role
+exports.changeRole = async (req, res) => {
+  try {
+    await User.update({
+      role: req.body.role
+    }, {
+      where: {
+        nickname: req.body.nickname
+      }
+    });
+
+    res.json({ msg: 'success' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+}
+
+// Set user's state
+exports.setState = async (req, res) => {
+  try {
+    await User.update({
+      block: req.body.state
+    }, {
+      where: {
+        nickname: req.body.nickname
+      }
+    });
+
+    res.json({ msg: 'success' });
   } catch (error) {
     console.log(error);
     res.status(500).json(error);

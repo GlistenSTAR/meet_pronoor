@@ -13,15 +13,15 @@ const Friend = sequelize.define('friend', {
     type: Sequelize.STRING,
     allowNull: false
   },
-  nickname: {
+  friend: {
     type: Sequelize.STRING,
     allowNull: false
   },
-  avatar: {
+  friend_avatar: {
     type: Sequelize.STRING,
     allowNull: false
   },
-  time: {
+  last_time: {
     type: Sequelize.DATE,
     allowNull: false
   }

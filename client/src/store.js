@@ -5,7 +5,12 @@ export const socketURL = readable("http://192.168.108.17:7000");
 
 export const user = writable([]);
 export const selectedFriend = writable([]);
+export const selectedUser = writable([]);
+export const selectedUser2 = writable([]);
 export const friends = writable([]);
+export const users = writable([]);
+export const usersExpOne = writable([]);
 export const isAuthenticated = writable(false);
 export const errors = writable({});
 export const messages = writable([]);
+export const messagesOfAdminPanel = writable([]);

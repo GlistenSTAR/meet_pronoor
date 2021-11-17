@@ -10,10 +10,17 @@
   };
 </script>
 
-<div class="mb-1 friend-item" on:click={selectFriend}>
-  <img src={`../../${friend.avatar}`} alt="avatar2" class="friend-avatar" />
-  <span class="ml-2 font-weight-bolder nickname">{friend.nickname}</span>
-</div>
+{#if $selectedFriend.nickname === friend.nickname}
+  <div class="mb-1 friend-item selected" on:click={selectFriend}>
+    <img src={`../../${friend.avatar}`} alt="avatar2" class="friend-avatar" />
+    <span class="ml-2 font-weight-bolder nickname">{friend.nickname}</span>
+  </div>
+{:else}
+  <div class="mb-1 friend-item" on:click={selectFriend}>
+    <img src={`../../${friend.avatar}`} alt="avatar2" class="friend-avatar" />
+    <span class="ml-2 font-weight-bolder nickname">{friend.nickname}</span>
+  </div>
+{/if}
 
 <style>
   .friend-avatar {
@@ -30,6 +37,11 @@
   }
 
   .friend-item:hover {
+    background-color: #988781;
+    border-radius: 15px;
+  }
+
+  .selected {
     background-color: #988781;
     border-radius: 15px;
   }

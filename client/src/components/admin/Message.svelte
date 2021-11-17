@@ -1,28 +1,24 @@
 <script>
-  import { user, selectedFriend } from "../../store";
+  import { selectedUser } from "../../store";
 
-  let userData;
-  let friend;
+  let selected_user;
 
-  selectedFriend.subscribe((v) => {
-    friend = v;
-  });
-
-  user.subscribe((v) => {
-    userData = v;
+  selectedUser.subscribe((v) => {
+    selected_user = v;
   });
 
   export let message;
+  export let user;
 </script>
 
-{#if userData.nickname === message.receiver}
+{#if user.nickname === message.receiver}
   <div class="d-flex justify-content-start">
     {#if message.message_type === "text"}
       <div class="message-item mb-2">
         <div class="d-flex justify-content-md-between px-2">
           <div class="d-flex align-items-center">
             <img
-              src={`../../${friend.avatar}`}
+              src={`../../${selected_user.avatar}`}
               alt="avatar"
               class="friend-avatar"
             />
@@ -50,7 +46,7 @@
         <div class="d-flex justify-content-md-between px-2">
           <div class="d-flex align-items-center">
             <img
-              src={`../../${userData.avatar}`}
+              src={`../../${user.avatar}`}
               alt="avatar"
               class="friend-avatar"
             />

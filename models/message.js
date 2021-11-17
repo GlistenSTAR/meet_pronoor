@@ -26,6 +26,21 @@ const Message = sequelize.define('message', {
   },
   receiver_time: {
     type: Sequelize.STRING
+  },
+  filepath: {
+    type: Sequelize.STRING
+  },
+  filename: {
+    type: Sequelize.STRING
+  },
+  message_type: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    defaultValue: 'text'
+  },
+  live_time: {
+    type: Sequelize.INTEGER,
+    allowNull: false
   }
 });
 

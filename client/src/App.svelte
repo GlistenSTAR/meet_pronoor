@@ -9,7 +9,10 @@
 
 	import Register from "./components/auth/Register.svelte";
 	import Login from "./components/auth/Login.svelte";
-	import Home from "./components/layout/Home.svelte";
+	import Board from "./components/board/Board.svelte";
+	import AdminDashboard from "./components/admin/AdminDashboard.svelte";
+	import ViewMessage from "./components/admin/ViewMessage.svelte";
+	import Navbar from "./components/navbar/Navbar.svelte";
 
 	onMount(() => {
 		if (localStorage.token) {
@@ -25,9 +28,16 @@
 
 <main>
 	<Notifications>
+		<Navbar />
 		<Router {url}>
 			<PrivateRoute path="/">
-				<Home />
+				<Board />
+			</PrivateRoute>
+			<PrivateRoute path="/administrator">
+				<AdminDashboard />
+			</PrivateRoute>
+			<PrivateRoute path="/administrator/view_message">
+				<ViewMessage />
 			</PrivateRoute>
 			<Route path="/auth/register" component={Register} />
 			<Route path="/auth/login" component={Login} />

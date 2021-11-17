@@ -20,11 +20,14 @@
   "dependencies": {
     "@fortawesome/free-solid-svg-icons": "^5.15.4",
     "axios": "^0.21.1",
+    "filedrop-svelte": "0.0.12",
+    "jwt-decode": "^3.1.2",
     "sirv-cli": "^1.0.0",
     "socket.io-client": "^2.3.0",
     "sv-bootstrap-dropdown": "^0.4.4",
     "svelte-fontawesome": "0.0.3",
     "svelte-navigator": "^3.1.5",
-    "svelte-notifications": "^0.9.91"
+    "svelte-notifications": "^0.9.91",
+    "svelte-range-slider-pips": "^2.0.0"
   }
 }

@@ -1,7 +1,7 @@
 import { navigate } from 'svelte-navigator';
 
 import api from '../utils/api';
-import { user, isAuthenticated, errors, friends } from '../store';
+import { user, isAuthenticated, errors, friends, users, usersExpOne } from '../store';
 
 // Load User
 export const loadUser = async () => {
@@ -47,11 +47,17 @@ export const login = async userData => {
 
 // Logout User
 export const logout = async () => {
-  localStorage.removeItem('token');
-  user.set([]);
-  isAuthenticated.set(false);
-  errors.set({});
-  navigate('/auth/login', { replace: true });
+  const res = await api.get('/users/logout');
+
+  if (res.msg === 'success') {
+    localStorage.removeItem('token');
+    user.set([]);
+    isAuthenticated.set(false);
+    errors.set({});
+    navigate('/auth/login', { replace: true });
+  } else {
+    console.log(res.data);
+  }
 }
 
 // Update User
@@ -81,13 +87,79 @@ export const changePassword = async pwData => {
   }
 }
 
-// Search users
-export const searchUsers = async () => {
-  const res = await api.get('/users/searchUsers');
+// Get users
+export const getUsers = async () => {
+  const res = await api.get('/users/getUsers');
+
+  if (res.msg === 'success') {
+    console.log(res.msg);
+    users.set(res.users);
+  } else {
+    console.log(res.data);
+  }
+}
+
+// Get users except one
+export const getUsersExpOne = async (nickname) => {
+  const res = await api.get(`/users/getUsersExpOne/${nickname}`);
+
+  if (res.msg === 'success') {
+    console.log(res.msg);
+    usersExpOne.set(res.users);
+  } else {
+    console.log(res.data);
+  }
+}
+
+// Get friends
+export const getFriends = async () => {
+  const res = await api.get('/users/getFriends');
 
   if (res.msg === 'success') {
     console.log(res.msg);
     friends.set(res.users);
+  } else {
+    console.log(res.data);
+  }
+}
+
+// Delete user
+export const deleteUser = async userNickname => {
+  const res = await api.delete(`/users/deleteUser/${userNickname}`);
+
+  if (res.msg === 'success') {
+    console.log(res.msg);
+    return res.msg;
+  } else {
+    console.log(res.data);
+  }
+}
+
+// Change role
+export const changeRole = async (nickname, role) => {
+  const res = await api.put('/users/changeRole', {
+    nickname: nickname,
+    role: role
+  });
+
+  if (res.msg === 'success') {
+    console.log(res.msg);
+    return res.msg;
+  } else {
+    console.log(res.data);
+  }
+}
+
+// Set user's state
+export const setState = async (nickname, state) => {
+  const res = await api.put('/users/setState', {
+    nickname: nickname,
+    state: state
+  });
+
+  if (res.msg === 'success') {
+    console.log(res.msg);
+    return res.msg;
   } else {
     console.log(res.data);
   }
