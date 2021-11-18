@@ -7,6 +7,8 @@
   import Dropdown from "sv-bootstrap-dropdown";
   import FileDrop from "filedrop-svelte";
   import RangeSlider from "svelte-range-slider-pips";
+  import Inputmask from "inputmask";
+  import classnames from "classnames";
 
   import {
     user,
@@ -40,6 +42,8 @@
   let file;
   let live_time = [60];
   let liveTime = "00:01:00";
+  const im = new Inputmask("99:99:99");
+  let time_format_error = false;
 
   messages.subscribe((v) => {
     msgs = v;
@@ -214,6 +218,32 @@
     liveTime = hour + ":" + minute + ":" + second;
   };
 
+  const enterLiveTime = () => {
+    im.mask(document.querySelector("#live_time"));
+    const hour = parseInt(liveTime.substr(0, 2));
+    const minute = parseInt(liveTime.substr(3, 2));
+    const sec = parseInt(liveTime.substr(6, 2));
+
+    if (
+      hour <= 36 &&
+      hour >= 0 &&
+      minute < 60 &&
+      minute >= 0 &&
+      sec < 60 &&
+      sec >= 0
+    ) {
+      if (hour === 0 && minute === 0 && sec < 30) {
+        time_format_error = true;
+      } else {
+        time_format_error = false;
+        const time = hour * 3600 + minute * 60 + sec;
+        live_time[0] = time;
+      }
+    } else {
+      time_format_error = true;
+    }
+  };
+
   window.process = {
     env: "production",
   };
@@ -313,9 +343,12 @@
           </div>
           <input
             type="text"
-            class="form-control live-time ml-3"
+            class={classnames("form-control live-time ml-3", {
+              "is-invalid": time_format_error,
+            })}
+            id="live_time"
             bind:value={liveTime}
-            readonly
+            on:input={enterLiveTime}
           />
         </div>
       </div>
@@ -420,7 +453,7 @@
   }
 
   .live-time {
-    width: 100px;
+    width: 118px;
     font-size: 18px;
   }
 
