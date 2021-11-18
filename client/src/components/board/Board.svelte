@@ -78,7 +78,7 @@
     getMessages($selectedFriend.nickname);
   });
 
-  socket.on("deleteMessage", (data) => {
+  socket.on("hideMessage", (data) => {
     const removeIndex = msgs.findIndex((msg) => {
       return (
         msg.sender === data.sender &&
@@ -188,6 +188,10 @@
     }
   };
 
+  const get_friends = (e) => {
+    if (e.charCode === 13) getFriends();
+  };
+
   const fileDrop = (e) => {
     file = e.detail.files.accepted[0];
     message = file.name;
@@ -263,6 +267,7 @@
       placeholder="Search users"
       bind:value={search_key}
       on:input={searchFriend}
+      on:keypress={get_friends}
     />
     <div
       class="users-list mt-3 text-left"

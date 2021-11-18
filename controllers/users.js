@@ -5,7 +5,6 @@ const jwt = require('jsonwebtoken');
 const config = require('config');
 
 const User = require('../models/user');
-// const Friend = require('../models/friend');
 const Message = require('../models/message');
 
 const { deleteFile } = require('../utils/fileHelper');

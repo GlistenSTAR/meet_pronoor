@@ -72,17 +72,19 @@ io.on('connection', socket => {
   console.log('Client Connected!');
   socket.on('createMessage', data => {
     setTimeout(() => {
-      if (data.message_type === 'file') {
-        deleteFile(path.join(__dirname, 'client/public/', data.filepath));
-      }
+      // if (data.message_type === 'file') {
+      //   deleteFile(path.join(__dirname, 'client/public/', data.filepath));
+      // }
 
-      Message.destroy({
+      Message.update({
+        show_status: 'admin'
+      }, {
         where: {
           id: data.id
         }
       });
 
-      io.emit('deleteMessage', data);
+      io.emit('hideMessage', data);
     }, data.live_time);
     io.emit('createMessage', data);
   });

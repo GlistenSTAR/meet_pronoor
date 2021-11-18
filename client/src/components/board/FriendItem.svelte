@@ -1,11 +1,12 @@
 <script>
-  import { selectedFriend } from "../../store";
+  import { selectedFriend, friends } from "../../store";
   import { getMessages } from "../../apis/message";
 
   export let friend;
 
   const selectFriend = () => {
     selectedFriend.set(friend);
+    friends.set([friend]);
     getMessages(friend.nickname);
   };
 </script>

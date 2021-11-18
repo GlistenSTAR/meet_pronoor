@@ -1,6 +1,4 @@
 const Message = require('../models/message');
-const Friend = require('../models/friend');
-const User = require('../models/user');
 
 const isEmpty = require('../validation/is-empty');
 
@@ -50,14 +48,16 @@ exports.getMessages = async (req, res) => {
     let senderMessages = await Message.findAll({
       where: {
         sender: req.user.nickname,
-        receiver: req.params.receiver
+        receiver: req.params.receiver,
+        show_status: 'user'
       }
     });
 
     let receiveMessages = await Message.findAll({
       where: {
         receiver: req.user.nickname,
-        sender: req.params.receiver
+        sender: req.params.receiver,
+        show_status: 'user'
       }
     });
 

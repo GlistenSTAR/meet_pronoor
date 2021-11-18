@@ -41,6 +41,11 @@ const Message = sequelize.define('message', {
   live_time: {
     type: Sequelize.INTEGER,
     allowNull: false
+  },
+  show_status: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    defaultValue: 'user'
   }
 });
 

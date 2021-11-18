@@ -43,18 +43,18 @@
     }
   });
 
-  socket.on("deleteMessage", (data) => {
-    const removeIndex = msgs.findIndex((msg) => {
-      return (
-        msg.sender === data.sender &&
-        msg.receiver === data.receiver &&
-        msg.sender_time === data.sender_time
-      );
-    });
+  // socket.on("deleteMessage", (data) => {
+  //   const removeIndex = msgs.findIndex((msg) => {
+  //     return (
+  //       msg.sender === data.sender &&
+  //       msg.receiver === data.receiver &&
+  //       msg.sender_time === data.sender_time
+  //     );
+  //   });
 
-    msgs.splice(removeIndex, 1);
-    messagesOfAdminPanel.set(msgs);
-  });
+  //   msgs.splice(removeIndex, 1);
+  //   messagesOfAdminPanel.set(msgs);
+  // });
 
   onMount(() => {
     getUsersExpOne(user.nickname);
@@ -88,7 +88,7 @@
       const search_result = totalUsers.filter((user) => {
         return user.nickname.toLowerCase().search(search_key) !== -1;
       });
-      users.set(search_result);
+      usersExpOne.set(search_result);
     } else {
       getUsersExpOne(user.nickname);
     }
