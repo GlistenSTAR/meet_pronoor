@@ -35,7 +35,7 @@
     socket_url = v;
   });
 
-  const socket = openSocket(socket_url);
+  const socket = openSocket(socket_url, { secure: true });
 
   socket.on("create_message", () => {
     if (!isEmpty(user)) {

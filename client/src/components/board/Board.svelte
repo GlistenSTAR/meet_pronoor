@@ -12,12 +12,13 @@
 
   import {
     user,
+    usersExpUser,
     friends,
     selectedFriend,
     socketURL,
     messages,
   } from "../../store";
-  import { getFriends, logout } from "../../apis/auth";
+  import { getFriends, logout, getUsersExpUser } from "../../apis/auth";
   import { saveMessage, getMessages } from "../../apis/message";
   import isEmpty from "../../utils/is-empty";
 
@@ -33,6 +34,7 @@
   let userData;
   let totalFriends;
   let friend;
+  let users_exp_user;
   let socket_url;
   let message = "";
   let msgs = [];
@@ -44,6 +46,11 @@
   let liveTime = "00:01:00";
   const im = new Inputmask("99:99:99");
   let time_format_error = false;
+  let cursorPos;
+
+  usersExpUser.subscribe((v) => {
+    users_exp_user = v;
+  });
 
   messages.subscribe((v) => {
     msgs = v;
@@ -53,11 +60,21 @@
     socket_url = v;
   });
 
-  const socket = openSocket(socket_url);
+  onMount(() => {
+    getFriends();
+    getUsersExpUser();
+  });
+
+  const socket = openSocket(socket_url, { secure: true });
 
   socket.on("createMessage", (data) => {
-    data.receiver_time = new Date().toLocaleTimeString();
+    const date = new Date().toLocaleDateString();
+    const time = new Date().toLocaleTimeString();
+
+    data.receiver_time = date + " " + time;
+
     const newMsg = new Array();
+
     newMsg.sender = data.sender;
     newMsg.receiver = data.receiver;
     newMsg.message_type = data.message_type;
@@ -94,10 +111,6 @@
     msgs.splice(removeIndex, 1);
     messages.set(msgs);
     // getMessages($selectedFriend.nickname);
-  });
-
-  onMount(() => {
-    getFriends();
   });
 
   afterUpdate(() => {
@@ -148,18 +161,22 @@
       });
     } else {
       const msgData = new FormData();
+      const date = new Date().toLocaleDateString();
+      const time = new Date().toLocaleTimeString();
+      const sender_time = date + " " + time;
+
       if (isEmpty(file)) {
         msgData.append("sender", userData.nickname);
         msgData.append("receiver", friend.nickname);
         msgData.append("message", message);
-        msgData.append("sender_time", new Date().toLocaleTimeString());
+        msgData.append("sender_time", sender_time);
         msgData.append("receiver_time", "");
         msgData.append("message_type", "text");
         msgData.append("live_time", live_time * 1000);
       } else {
         msgData.append("sender", userData.nickname);
         msgData.append("receiver", friend.nickname);
-        msgData.append("sender_time", new Date().toLocaleTimeString());
+        msgData.append("sender_time", sender_time);
         msgData.append("receiver_time", "");
         msgData.append("message", "");
         msgData.append("file", file);
@@ -183,8 +200,8 @@
 
   const searchFriend = () => {
     if (!isEmpty(search_key)) {
-      const search_result = totalFriends.filter((friend) => {
-        return friend.nickname.toLowerCase().search(search_key) !== -1;
+      const search_result = users_exp_user.filter((user) => {
+        return user.nickname.toLowerCase().search(search_key) !== -1;
       });
       friends.set(search_result);
     } else {
@@ -193,7 +210,7 @@
   };
 
   const get_friends = (e) => {
-    if (e.charCode === 13) getFriends();
+    if (e.charCode === 13 && isEmpty(search_key)) getFriends();
   };
 
   const fileDrop = (e) => {
@@ -241,6 +258,86 @@
       }
     } else {
       time_format_error = true;
+    }
+  };
+
+  const selectCursorPos = (e) => {
+    cursorPos = e.target.selectionStart;
+    console.log(cursorPos);
+  };
+
+  const wheelLiveTime = (e) => {
+    let hour = parseInt(liveTime.substr(0, 2));
+    let minute = parseInt(liveTime.substr(3, 2));
+    let sec = parseInt(liveTime.substr(6, 2));
+
+    // const cursorPos = e.target.selectionStart;
+    const offset = e.deltaY;
+    const element = document.getElementById("live_time");
+
+    if (cursorPos === 0 || cursorPos === 1 || cursorPos === 2) {
+      hour -= offset * 0.01;
+
+      const time = hour * 3600 + minute * 60 + sec;
+
+      if (hour < 10) {
+        hour = "0" + hour;
+      }
+
+      if (minute < 10) {
+        minute = "0" + minute;
+      }
+
+      if (sec < 10) {
+        sec = "0" + sec;
+      }
+
+      if (hour >= 0 && hour <= 36) {
+        liveTime = hour + ":" + minute + ":" + sec;
+        live_time[0] = time;
+      }
+    } else if (cursorPos === 3 || cursorPos === 4 || cursorPos === 5) {
+      minute -= offset * 0.01;
+
+      const time = hour * 3600 + minute * 60 + sec;
+
+      if (hour < 10) {
+        hour = "0" + hour;
+      }
+
+      if (minute < 10) {
+        minute = "0" + minute;
+      }
+
+      if (sec < 10) {
+        sec = "0" + sec;
+      }
+
+      if (minute >= 0 && minute < 60) {
+        liveTime = hour + ":" + minute + ":" + sec;
+        live_time[0] = time;
+      }
+    } else if (cursorPos === 6 || cursorPos === 7 || cursorPos === 8) {
+      sec = sec - offset * 0.01;
+
+      const time = hour * 3600 + minute * 60 + sec;
+
+      if (hour < 10) {
+        hour = "0" + hour;
+      }
+
+      if (minute < 10) {
+        minute = "0" + minute;
+      }
+
+      if (sec < 10) {
+        sec = "0" + sec;
+      }
+
+      if (sec >= 0 && sec < 60) {
+        liveTime = hour + ":" + minute + ":" + sec;
+        live_time[0] = time;
+      }
     }
   };
 
@@ -349,6 +446,8 @@
             id="live_time"
             bind:value={liveTime}
             on:input={enterLiveTime}
+            on:mousewheel={wheelLiveTime}
+            on:mouseup={selectCursorPos}
           />
         </div>
       </div>

@@ -1,5 +1,7 @@
 const http = require('http');
+const https = require('https');
 const path = require('path');
+const fs = require('fs');
 const crypto = require('crypto');
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -7,7 +9,6 @@ const multer = require('multer');
 const bcrypt = require('bcryptjs');
 
 const sequelize = require('./utils/database');
-const { deleteFile } = require('./utils/fileHelper');
 
 const usersRoute = require('./routes/users');
 const messageRoute = require('./routes/messages');
@@ -17,6 +18,13 @@ const User = require('./models/user');
 
 const app = express();
 
+// const privateKey = fs.readFileSync('ssl/privkey.pem', 'utf8');
+// const ca =fs.readFileSync('ssl/fullchain.pem','utf8');
+// const certificate = fs.readFileSync('ssl/cert.pem', 'utf8');
+
+// const credentials = {key: privateKey, cert: certificate, ca: ca};
+
+// const server = https.createServer(credentials, app);
 const server = http.createServer(app);
 const io = require('socket.io')(server);
 

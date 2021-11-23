@@ -16,13 +16,11 @@
 
 <Router>
   <nav
-    class="navbar navbar-expand-sm navbar-light py-2 px-4 justify-content-between"
+    class="navbar navbar-expand-sm navbar-light py-0 px-4 justify-content-between"
   >
     <div class="d-flex">
-      <Link class="navbar-brand" to="/">
-        <span class="pronoor-brand">
-          <img src="../logo.png" alt="logo" class="logo" />
-        </span>
+      <Link class="navbar-brand py-0" to="/">
+        <img src="../logo.png" alt="logo" class="logo" />
       </Link>
     </div>
     <ul class="navbar-nav">
@@ -79,12 +77,7 @@
     cursor: pointer;
   }
 
-  .pronoor-brand {
-    color: #cecbc9 !important;
-    font-weight: bolder;
-  }
-
   .logo {
-    width: 200px;
+    width: 160px;
   }
 </style>

@@ -1,18 +1,25 @@
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
+const crypto = require("crypto");
 const jwt = require('jsonwebtoken');
 const config = require('config');
+require('dotenv').config();
 
 const User = require('../models/user');
 const Message = require('../models/message');
+const Friend = require('../models/friend');
+const Token = require('../models/token');
 
+const sendEmail = require('../utils/sendEmail');
 const { deleteFile } = require('../utils/fileHelper');
+const { CLIENT_URL, EMAIL_SENDER } = process.env;
 
 const validateRegisterInput = require('../validation/register');
 const validateLoginInput = require('../validation/login');
 const validateUpdateInput = require('../validation/updateUser');
 const validateChangePwInput = require('../validation/changePw');
+const validateEmail = require('../validation/email');
 const isEmpty = require('../validation/is-empty');
 
 exports.loadUser = async (req, res) => {
@@ -245,6 +252,29 @@ exports.getUsersExpOne = async (req, res) => {
 
 exports.getFriends = async (req, res) => {
   try {
+    let friends = await Friend.findAll({
+      where: {
+        user: req.user.nickname
+      }
+    });
+
+    friends.sort((a, b) => {
+      var x = a.nickname.toLowerCase();
+      var y = b.nickname.toLowerCase();
+      if (x < y) { return -1; }
+      if (x > y) { return 1; }
+      return 0;
+    });
+
+    res.json({ friends: friends, msg: 'success' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+}
+
+exports.getUsersExpUser = async (req, res) => {
+  try {
     let users = await User.findAll();
 
     let index = users.findIndex(user => {
@@ -268,6 +298,37 @@ exports.getFriends = async (req, res) => {
     });
 
     res.json({ users: users, msg: 'success' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+}
+
+exports.addFriend = async (req, res) => {
+  try {
+    await Friend.create({
+      user: req.user.nickname,
+      nickname: req.body.nickname,
+      avatar: req.body.avatar
+    });
+
+    res.json({ msg: 'success' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+}
+
+exports.removeFriend = async (req, res) => {
+  try {
+    await Friend.destroy({
+      where: {
+        user: req.user.nickname,
+        nickname: req.params.friend
+      }
+    });
+
+    res.json({ msg: 'success' });
   } catch (error) {
     console.log(error);
     res.status(500).json(error);
@@ -358,6 +419,99 @@ exports.setState = async (req, res) => {
         nickname: req.body.nickname
       }
     });
+
+    res.json({ msg: 'success' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+}
+
+exports.sendReqResetPw = async (req, res) => {
+  const { errors, isValid } = validateEmail(req.body);
+
+  if (!isValid)
+    return res.status(400).json(errors);
+
+  try {
+    const user = await User.findOne({
+      where: {
+        email: req.body.email
+      }
+    });
+
+    if (isEmpty(user)) return res.status(400).json({ email: 'Email not registered!' });
+
+    let token = await Token.findOne({
+      where: {
+        userId: user.id
+      }
+    });
+
+    if (!isEmpty(token)) await token.destroy();
+
+    let resetToken = crypto.randomBytes(32).toString("hex");
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(resetToken, salt);
+
+    const newToken = {
+      userId: user.id,
+      token: hash,
+      createdAt: Date.now(),
+    };
+
+    await Token.create(newToken);
+
+    const link = `${CLIENT_URL}/resetPassword/${user.id}/${resetToken}`;
+
+    sendEmail(user.email, "Password Reset Request", { link: link });
+
+    res.json({ msg: 'success' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+}
+
+exports.resetPassword = async (req, res) => {
+  const { errors, isValid } = validateChangePwInput(req.body);
+
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+
+  try {
+    const resetPwToken = await Token.findOne({
+      where: {
+        userId: req.body.userId
+      }
+    });
+
+    if (isEmpty(resetPwToken)) {
+      errors.msg = 'Invalid or expired password reset token';
+      return res.status(400).json(errors);
+    }
+
+    const isValid = await bcrypt.compare(req.body.token, resetPwToken.token);
+
+    if (!isValid) {
+      errors.msg = 'Invalid or expired password reset token';
+      return res.status(400).json(errors);
+    }
+
+    const salt = await bcrypt.genSalt(10);
+
+    const newPw = await bcrypt.hash(req.body.password, salt);
+
+    await User.update({
+      password: newPw
+    }, {
+      where: {
+        id: req.body.userId
+      }
+    });
+
+    await resetPwToken.destroy();
 
     res.json({ msg: 'success' });
   } catch (error) {

@@ -3,8 +3,9 @@
   import { getNotificationsContext } from "svelte-notifications";
   import { Router, Link, navigate } from "svelte-navigator";
 
-  import { login } from "../../apis/auth";
+  import { login, sendResetPwReq } from "../../apis/auth";
   import { errors } from "../../store";
+  import isEmpty from "../../utils/is-empty";
 
   const { addNotification } = getNotificationsContext();
 
@@ -35,14 +36,11 @@
         type: "success",
         removeAfter: 3000,
       });
-    } else {
-      addNotification({
-        text: "Error occured",
-        position: "top-right",
-        type: "danger",
-        removeAfter: 3000,
-      });
     }
+  };
+
+  const requestResetPassword = async () => {
+    await sendResetPwReq(userData.email);
   };
 </script>
 
@@ -84,7 +82,13 @@
             <div class="mt-2 text-red">{errs.password}</div>
           {/if}
         </div>
-        <div class="mt-4">
+        <p
+          class="text-right forgot-password mb-1"
+          on:click={requestResetPassword}
+        >
+          Forgot Password?
+        </p>
+        <div class="mt-0">
           <button type="submit" class="btn btn-info">Sign In</button>
           <Router>
             <Link to="/auth/register">
@@ -111,7 +115,7 @@
   }
 
   .logo {
-    width: 300px;
+    width: 250px;
     position: absolute;
     top: 00.5rem;
     left: 1rem;
@@ -119,5 +123,15 @@
 
   .logo:hover {
     cursor: pointer;
+  }
+
+  .forgot-password {
+    color: white;
+  }
+
+  .forgot-password:hover {
+    color: #cecbc9;
+    cursor: pointer;
+    text-decoration: underline #cecbc9;
   }
 </style>

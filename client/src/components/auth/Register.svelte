@@ -39,13 +39,6 @@
         type: "success",
         removeAfter: 3000,
       });
-    } else {
-      addNotification({
-        text: "Error occured",
-        position: "top-right",
-        type: "danger",
-        removeAfter: 3000,
-      });
     }
   };
 </script>
@@ -142,7 +135,7 @@
   }
 
   .logo {
-    width: 300px;
+    width: 250px;
     position: absolute;
     top: 00.5rem;
     left: 1rem;

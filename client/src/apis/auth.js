@@ -1,7 +1,7 @@
 import { navigate } from 'svelte-navigator';
 
 import api from '../utils/api';
-import { user, isAuthenticated, errors, friends, users, usersExpOne } from '../store';
+import { user, isAuthenticated, errors, friends, users, usersExpOne, usersExpUser, immutableFriends } from '../store';
 
 // Load User
 export const loadUser = async () => {
@@ -117,7 +117,43 @@ export const getFriends = async () => {
 
   if (res.msg === 'success') {
     console.log(res.msg);
-    friends.set(res.users);
+    friends.set(res.friends);
+    immutableFriends.set(res.friends);
+  } else {
+    console.log(res.data);
+  }
+}
+
+// Get users except for user
+export const getUsersExpUser = async () => {
+  const res = await api.get('/users/getUsersExpUser');
+
+  if (res.msg === 'success') {
+    console.log(res.msg);
+    usersExpUser.set(res.users);
+  } else {
+    console.log(res.data);
+  }
+}
+
+// Add friend
+export const addFriend = async friendData => {
+  const res = await api.post('/users/addFriend', friendData);
+
+  if (res.msg === 'success') {
+    console.log(res.msg);
+    return res.msg;
+  } else {
+    console.log(res.data);
+  }
+}
+
+// Remove friend
+export const removeFriend = async friend => {
+  const res = await api.delete(`/users/removeFriend/${friend}`);
+
+  if (res.msg === 'success') {
+    return res.msg;
   } else {
     console.log(res.data);
   }
@@ -162,5 +198,32 @@ export const setState = async (nickname, state) => {
     return res.msg;
   } else {
     console.log(res.data);
+  }
+}
+
+// Send the reset password request
+export const sendResetPwReq = async email => {
+  const res = await api.post('/users/sendReqResetPw', { email: email });
+
+  if (res.msg === 'success') {
+    console.log(res.msg);
+    return res.msg;
+  } else {
+    console.log(res.data);
+    return res.data;
+  }
+}
+
+// Reset password
+export const resetPassword = async data => {
+  const res = await api.put('/users/resetPassword', data);
+
+  if (res.msg === 'success') {
+    console.log(res.msg);
+    errors.set({});
+    navigate('/auth/login', { replace: true });
+  } else {
+    console.log(res.data);
+    errors.set(res.data);
   }
 }

@@ -9,6 +9,7 @@
 
 	import Register from "./components/auth/Register.svelte";
 	import Login from "./components/auth/Login.svelte";
+	import ResetPassword from "./components/auth/ResetPassword.svelte";
 	import Board from "./components/board/Board.svelte";
 	import AdminDashboard from "./components/admin/AdminDashboard.svelte";
 	import ViewMessage from "./components/admin/ViewMessage.svelte";
@@ -41,6 +42,10 @@
 			</PrivateRoute>
 			<Route path="/auth/register" component={Register} />
 			<Route path="/auth/login" component={Login} />
+			<Route
+				path="/auth/resetPassword/:userId/:token"
+				component={ResetPassword}
+			/>
 		</Router>
 	</Notifications>
 </main>

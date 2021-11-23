@@ -34,8 +34,13 @@
         <p class="mb-2 px-2 text-left">{message.message}</p>
       </div>
     {:else}
-      <div class="file-item mb-2">
-        <a href={`../../${message.filepath}`}>{message.filename}</a>
+      <div class="file-item-field">
+        <p class="m-1 text-right file-time">
+          {message.receiver_time}
+        </p>
+        <div class="file-item mb-2">
+          <a href={`../../${message.filepath}`}>{message.filename}</a>
+        </div>
       </div>
     {/if}
   </div>
@@ -62,8 +67,13 @@
         <p class="mb-2 px-2 text-left">{message.message}</p>
       </div>
     {:else}
-      <div class="file-item mb-2">
-        <a href={`../../${message.filepath}`}>{message.filename}</a>
+      <div class="file-item-field">
+        <p class="m-1 text-right file-time">
+          {message.sender_time}
+        </p>
+        <div class="file-item mb-2">
+          <a href={`../../${message.filepath}`}>{message.filename}</a>
+        </div>
       </div>
     {/if}
   </div>
@@ -87,6 +97,9 @@
     min-width: 200px;
     max-width: 500px;
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 4px 10px 0 rgba(0, 0, 0, 0.19);
+  }
+
+  .file-item-field {
     z-index: 2;
   }
 
@@ -96,5 +109,9 @@
     border-radius: 50%;
     border: 2px solid #f96714;
     cursor: pointer;
+  }
+
+  .file-time {
+    color: #cecbc9;
   }
 </style>
