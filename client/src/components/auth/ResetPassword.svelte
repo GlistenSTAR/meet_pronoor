@@ -7,16 +7,18 @@
 
   const { addNotification } = getNotificationsContext();
 
-  onMount(() => {
-    errors.set({});
-  });
-
   let newPw = {
     password: "",
     password2: "",
   };
 
   let errs = {};
+
+  export let params;
+
+  onMount(() => {
+    errors.set({});
+  });
 
   errors.subscribe((value) => {
     errs = value;
@@ -26,8 +28,8 @@
     const data = {
       password: newPw.password,
       password2: newPw.password2,
-      userId: "",
-      token: "",
+      userId: params.userId,
+      token: params.token,
     };
 
     await resetPassword(data);
@@ -35,7 +37,7 @@
 </script>
 
 <div class="d-flex justify-content-center align-items-center full-height auth">
-  <img src="../logo.png" alt="logo" class="logo" />
+  <img src="../../../logo.png" alt="logo" class="logo" />
   <div>
     <h3 class="text-white">Reset Password</h3>
     {#if errs.msg}

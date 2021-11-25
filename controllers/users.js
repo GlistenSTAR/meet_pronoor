@@ -19,6 +19,7 @@ const validateRegisterInput = require('../validation/register');
 const validateLoginInput = require('../validation/login');
 const validateUpdateInput = require('../validation/updateUser');
 const validateChangePwInput = require('../validation/changePw');
+const validateResetPwInput = require('../validation/resetPw');
 const validateEmail = require('../validation/email');
 const isEmpty = require('../validation/is-empty');
 
@@ -462,9 +463,11 @@ exports.sendReqResetPw = async (req, res) => {
 
     await Token.create(newToken);
 
-    const link = `${CLIENT_URL}/resetPassword/${user.id}/${resetToken}`;
+    const link = `${CLIENT_URL}/auth/resetPassword/${user.id}/${resetToken}`;
 
-    sendEmail(user.email, "Password Reset Request", { link: link });
+    const result = await sendEmail(user.email, "Password Reset Request", { link: link });
+
+    console.log(result);
 
     res.json({ msg: 'success' });
   } catch (error) {
@@ -474,7 +477,7 @@ exports.sendReqResetPw = async (req, res) => {
 }
 
 exports.resetPassword = async (req, res) => {
-  const { errors, isValid } = validateChangePwInput(req.body);
+  const { errors, isValid } = validateResetPwInput(req.body);
 
   if (!isValid) {
     return res.status(400).json(errors);

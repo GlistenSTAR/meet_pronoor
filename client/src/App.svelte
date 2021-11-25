@@ -42,10 +42,9 @@
 			</PrivateRoute>
 			<Route path="/auth/register" component={Register} />
 			<Route path="/auth/login" component={Login} />
-			<Route
-				path="/auth/resetPassword/:userId/:token"
-				component={ResetPassword}
-			/>
+			<Route path="/auth/resetPassword/:userId/:token" let:params>
+				<ResetPassword {params} />
+			</Route>
 		</Router>
 	</Notifications>
 </main>

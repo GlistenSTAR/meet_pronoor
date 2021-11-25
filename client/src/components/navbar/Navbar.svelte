@@ -20,7 +20,7 @@
   >
     <div class="d-flex">
       <Link class="navbar-brand py-0" to="/">
-        <img src="../logo.png" alt="logo" class="logo" />
+        <img src="/logo.png" alt="logo" class="logo" />
       </Link>
     </div>
     <ul class="navbar-nav">

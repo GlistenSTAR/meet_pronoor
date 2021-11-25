@@ -18,14 +18,15 @@ const User = require('./models/user');
 
 const app = express();
 
-// const privateKey = fs.readFileSync('ssl/privkey.pem', 'utf8');
-// const ca =fs.readFileSync('ssl/fullchain.pem','utf8');
-// const certificate = fs.readFileSync('ssl/cert.pem', 'utf8');
+const privateKey = fs.readFileSync('ssl/privkey.pem', 'utf8');
+const ca =fs.readFileSync('ssl/fullchain.pem','utf8');
+const certificate = fs.readFileSync('ssl/cert.pem', 'utf8');
 
-// const credentials = {key: privateKey, cert: certificate, ca: ca};
+const credentials = {key: privateKey, cert: certificate, ca: ca};
 
-// const server = https.createServer(credentials, app);
-const server = http.createServer(app);
+const server = https.createServer(credentials, app);
+//const server=https.createServer(app);
+//const server = http.createServer(app);
 const io = require('socket.io')(server);
 
 const avatarStorage = multer.diskStorage({

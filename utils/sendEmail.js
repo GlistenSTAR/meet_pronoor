@@ -32,12 +32,15 @@ const sendEmail = async (email, subject, payload) => {
     // Send email
     transporter.sendMail(options(), (error, info) => {
       if (error) {
+        console.log({ er1: error });
         return error;
       } else {
+        console.log('Email successfully sent');
         return res.status(200).json({ msg: 'success' });
       }
     });
   } catch (error) {
+    console.log({ er2: error });
     return error;
   }
 };
