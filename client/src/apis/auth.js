@@ -1,4 +1,5 @@
 import { navigate } from 'svelte-navigator';
+import jwtDecode from 'jwt-decode';
 
 import api from '../utils/api';
 import { user, isAuthenticated, errors, friends, users, usersExpOne, usersExpUser, immutableFriends } from '../store';
@@ -47,7 +48,8 @@ export const login = async userData => {
 
 // Logout User
 export const logout = async () => {
-  const res = await api.get('/users/logout');
+  const decode = jwtDecode(localStorage.token);
+  const res = await api.put('/users/logout', { userId: decode.user.id });
 
   if (res.msg === 'success') {
     localStorage.removeItem('token');
@@ -105,7 +107,7 @@ export const getUsersExpOne = async (nickname) => {
 
   if (res.msg === 'success') {
     console.log(res.msg);
-    usersExpOne.set(res.users);
+    usersExpOne.set(res.friends);
   } else {
     console.log(res.data);
   }

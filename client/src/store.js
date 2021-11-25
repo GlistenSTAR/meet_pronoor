@@ -1,9 +1,9 @@
 import { readable, writable } from 'svelte/store';
 
-//export const apiURL = readable("http://192.168.108.17:7000/api");
-//export const socketURL = readable("http://192.168.108.17:7000");
-export const apiURL = readable("/api");
-export const socketURL = readable("https://cybchat.com:7000");
+export const apiURL = readable("http://127.0.0.1:7000/api");
+export const socketURL = readable("http://127.0.0.1:7000");
+// export const apiURL = readable("/api");
+// export const socketURL = readable("https://cybchat.com:7000");
 
 export const user = writable([]);
 export const selectedFriend = writable([]);

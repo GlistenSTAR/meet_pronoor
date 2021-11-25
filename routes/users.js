@@ -27,7 +27,7 @@ router.post('/addFriend', isAuth, usersController.addFriend);
 
 router.delete('/removeFriend/:friend', isAuth, usersController.removeFriend);
 
-router.get('/logout', isAuth, usersController.logoutUser);
+router.put('/logout', usersController.logoutUser);
 
 router.delete('/deleteUser/:nickname', isAuth, usersController.deleteUser);
 

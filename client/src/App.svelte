@@ -2,6 +2,7 @@
 	import { Router, Route } from "svelte-navigator";
 	import { onMount } from "svelte";
 	import Notifications from "svelte-notifications";
+	import jwtDecode from "jwt-decode";
 
 	import { loadUser, logout } from "./apis/auth";
 
@@ -17,7 +18,15 @@
 
 	onMount(() => {
 		if (localStorage.token) {
-			loadUser();
+			let decode = jwtDecode(localStorage.token);
+			let currentTime = Date.now() / 1000;
+			console.log(decode.exp);
+			console.log(currentTime);
+			if (decode.exp < currentTime) {
+				logout();
+			} else {
+				loadUser();
+			}
 		}
 
 		window.addEventListener("storage", () => {

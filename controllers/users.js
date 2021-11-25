@@ -117,7 +117,7 @@ exports.signin = async (req, res) => {
     jwt.sign(
       payload,
       config.get('jwtSecret'),
-      { expiresIn: '1 days' },
+      { expiresIn: 14400 },
       (err, token) => {
         if (err) throw err;
         res.json({ token: token, msg: 'success' });
@@ -228,15 +228,30 @@ exports.getUsers = async (req, res) => {
 
 exports.getUsersExpOne = async (req, res) => {
   try {
-    let users = await User.findAll();
+    // let users = await User.findAll();
 
-    const index = users.findIndex(user => {
-      return user.nickname === req.params.nickname;
+    // const index = users.findIndex(user => {
+    //   return user.nickname === req.params.nickname;
+    // });
+
+    // users.splice(index, 1);
+
+    // users.sort((a, b) => {
+    //   var x = a.nickname.toLowerCase();
+    //   var y = b.nickname.toLowerCase();
+    //   if (x < y) { return -1; }
+    //   if (x > y) { return 1; }
+    //   return 0;
+    // });
+
+    // res.json({ users: users, msg: 'success' });
+    let friends = await Friend.findAll({
+      where: {
+        user: req.params.nickname
+      }
     });
 
-    users.splice(index, 1);
-
-    users.sort((a, b) => {
+    friends.sort((a, b) => {
       var x = a.nickname.toLowerCase();
       var y = b.nickname.toLowerCase();
       if (x < y) { return -1; }
@@ -244,7 +259,7 @@ exports.getUsersExpOne = async (req, res) => {
       return 0;
     });
 
-    res.json({ users: users, msg: 'success' });
+    res.json({ friends: friends, msg: 'success' });
   } catch (error) {
     console.log(error);
     res.status(500).json(error);
@@ -342,7 +357,7 @@ exports.logoutUser = async (req, res) => {
       status: 'off'
     }, {
       where: {
-        id: req.user.id
+        id: req.body.userId
       }
     });
 
