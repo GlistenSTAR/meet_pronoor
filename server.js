@@ -122,12 +122,18 @@ sequelize.sync()
   })
   .then(user => {
     if (user) {
+      if (user.email !== 'admin@pronoor.com') {
+        user.update({
+          email: 'admin@pronoor.com'
+        });
+      }
+
       return user;
     }
 
     const admin = {
       nickname: 'Administrator',
-      email: 'admin@email.com',
+      email: 'admin@pronoor.com',
       password: '123456',
       avatar: 'avatars/default.png',
       role: 'admin'

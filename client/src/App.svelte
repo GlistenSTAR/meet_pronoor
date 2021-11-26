@@ -20,8 +20,6 @@
 		if (localStorage.token) {
 			let decode = jwtDecode(localStorage.token);
 			let currentTime = Date.now() / 1000;
-			console.log(decode.exp);
-			console.log(currentTime);
 			if (decode.exp < currentTime) {
 				logout();
 			} else {

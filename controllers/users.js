@@ -137,6 +137,13 @@ exports.updateUserData = async (req, res) => {
     return res.status(400).json(errors);
   }
   try {
+    const user = await User.findByPk(req.user.id);
+
+    if (user.email === 'admin@pronoor.com' && user.email !== req.body.email) {
+      errors.email = "Administrator's email can't be changed";
+      return res.status(400).json(errors);
+    }
+
     if (isEmpty(req.file)) {
       await User.update({
         nickname: req.body.nickname,
